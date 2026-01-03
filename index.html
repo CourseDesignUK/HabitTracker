@@ -1,254 +1,238 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.3">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Habit Tracker</title>
+
+  <!-- iOS PWA Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Habits">
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22c55e;
+      --muted: #94a3b8;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: linear-gradient(180deg, #020617, var(--bg));
+      color: #fff;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    header {
+      padding: 1.2rem 1rem 0.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 480px;
+      margin: auto;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.9);
+      border-radius: 18px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .add-habit {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .add-habit input {
+      flex: 1;
+      background: #020617;
+      border: 1px solid #1f2933;
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .add-habit button {
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .habit {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .habit:last-child { border-bottom: none; }
+
+    .habit-name {
+      font-size: 1rem;
+    }
+
+    .habit-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .check {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .check.done {
+      background: var(--accent);
+      color: #022c22;
+      font-weight: bold;
+    }
+
+    .delete {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="en"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Habit Tracker&lt;/title&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- iOS PWA Meta --&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="apple-mobile-web-app-title" content="Habits"&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>:root {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>--bg: #0f172a;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>--card: #111827;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>--accent: #22c55e;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>--muted: #94a3b8;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>--danger: #ef4444;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>* { box-sizing: border-box; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: linear-gradient(180deg, #020617, var(--bg));</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: env(safe-area-inset-top) env(safe-area-inset-right)</p>
-<p class="p1"><span class="Apple-converted-space">               </span>env(safe-area-inset-bottom) env(safe-area-inset-left);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>header {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 1.2rem 1rem 0.5rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>header h1 {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin: 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1.4rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-weight: 600;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>header p {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin: 0.25rem 0 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 0.9rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: var(--muted);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>main {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>max-width: 480px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin: auto;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.card {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: rgba(17, 24, 39, 0.9);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 18px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin-bottom: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 10px 30px rgba(0,0,0,0.35);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.add-habit {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>gap: 0.5rem;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.add-habit input {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>flex: 1;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: #020617;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border: 1px solid #1f2933;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 0.7rem 0.8rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: #fff;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.add-habit button {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: var(--accent);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 12px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 0.7rem 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1.1rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.habit {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>justify-content: space-between;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>padding: 0.7rem 0;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-bottom: 1px solid #1f2937;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.habit:last-child { border-bottom: none; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.habit-name {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.habit-actions {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>gap: 0.5rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.check {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>width: 28px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>height: 28px;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 50%;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border: 2px solid var(--accent);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>display: flex;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>align-items: center;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>justify-content: center;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.check.done {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: var(--accent);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: #022c22;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-weight: bold;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.delete {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>background: none;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>border: none;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: var(--danger);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 1.2rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>cursor: pointer;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>.footer {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>text-align: center;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>font-size: 0.75rem;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>color: var(--muted);</p>
-<p class="p1"><span class="Apple-converted-space">      </span>margin-top: 1rem;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;h1&gt;Daily Habits&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;p id="date"&gt;&lt;/p&gt;</p>
-<p class="p1">&lt;/header&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;main&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="add-habit"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;input id="habitInput" placeholder="Add a habit…" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button onclick="addHabit()"&gt;+&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="card" id="habitList"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="footer"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>Stored locally on your iPhone · Works offline</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p1">&lt;/main&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>const todayKey = new Date().toISOString().slice(0, 10);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById('date').textContent =</p>
-<p class="p1"><span class="Apple-converted-space">    </span>new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function loadHabits() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>return JSON.parse(localStorage.getItem('habits') || '[]');</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function saveHabits(habits) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>localStorage.setItem('habits', JSON.stringify(habits));</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function render() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const list = document.getElementById('habitList');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const habits = loadHabits();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>list.innerHTML = '';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>habits.forEach((habit, index) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">      </span>const doneToday = habit.doneDates.includes(todayKey);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>const row = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">      </span>row.className = 'habit';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>row.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="habit-name"&gt;${habit.name}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="habit-actions"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="check ${doneToday ? 'done' : ''}" onclick="toggleDone(${index})"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>${doneToday ? '✓' : ''}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;button class="delete" onclick="deleteHabit(${index})"&gt;×&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>`;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">      </span>list.appendChild(row);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function addHabit() {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const input = document.getElementById('habitInput');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const name = input.value.trim();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!name) return;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const habits = loadHabits();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>habits.push({ name, doneDates: [] });</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveHabits(habits);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>input.value = '';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>render();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function toggleDone(index) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const habits = loadHabits();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const dates = habits[index].doneDates;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>const i = dates.indexOf(todayKey);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (i &gt;= 0) dates.splice(i, 1);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>else dates.push(todayKey);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveHabits(habits);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>render();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>function deleteHabit(index) {</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const habits = loadHabits();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>habits.splice(index, 1);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveHabits(habits);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>render();</p>
-<p class="p1"><span class="Apple-converted-space">  </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>render();</p>
-<p class="p1">&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+<header>
+  <h1>Daily Habits</h1>
+  <p id="date"></p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="add-habit">
+      <input id="habitInput" placeholder="Add a habit…" />
+      <button onclick="addHabit()">+</button>
+    </div>
+  </div>
+
+  <div class="card" id="habitList"></div>
+
+  <div class="footer">
+    Stored locally on your iPhone · Works offline
+  </div>
+</main>
+
+<script>
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  document.getElementById('date').textContent =
+    new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+
+  function loadHabits() {
+    return JSON.parse(localStorage.getItem('habits') || '[]');
+  }
+
+  function saveHabits(habits) {
+    localStorage.setItem('habits', JSON.stringify(habits));
+  }
+
+  function render() {
+    const list = document.getElementById('habitList');
+    const habits = loadHabits();
+    list.innerHTML = '';
+
+    habits.forEach((habit, index) => {
+      const doneToday = habit.doneDates.includes(todayKey);
+
+      const row = document.createElement('div');
+      row.className = 'habit';
+
+      row.innerHTML = `
+        <div class="habit-name">${habit.name}</div>
+        <div class="habit-actions">
+          <div class="check ${doneToday ? 'done' : ''}" onclick="toggleDone(${index})">
+            ${doneToday ? '✓' : ''}
+          </div>
+          <button class="delete" onclick="deleteHabit(${index})">×</button>
+        </div>
+      `;
+
+      list.appendChild(row);
+    });
+  }
+
+  function addHabit() {
+    const input = document.getElementById('habitInput');
+    const name = input.value.trim();
+    if (!name) return;
+
+    const habits = loadHabits();
+    habits.push({ name, doneDates: [] });
+    saveHabits(habits);
+
+    input.value = '';
+    render();
+  }
+
+  function toggleDone(index) {
+    const habits = loadHabits();
+    const dates = habits[index].doneDates;
+
+    const i = dates.indexOf(todayKey);
+    if (i >= 0) dates.splice(i, 1);
+    else dates.push(todayKey);
+
+    saveHabits(habits);
+    render();
+  }
+
+  function deleteHabit(index) {
+    const habits = loadHabits();
+    habits.splice(index, 1);
+    saveHabits(habits);
+    render();
+  }
+
+  render();
+</script>
+
 </body>
 </html>
