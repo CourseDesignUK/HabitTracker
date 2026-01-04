@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Mind Garden</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <style>
         :root {
             --bg: #020617;
@@ -71,6 +74,7 @@
             align-items: center; 
             gap: 15px; 
             transition: all 0.2s;
+            cursor: pointer;
         }
         .track-card.playing { 
             border-color: var(--accent); 
@@ -130,11 +134,12 @@
 
         /* Calendar Heatmap */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
 
-        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; }
+        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; outline: none; }
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; }
     </style>
 </head>
 <body>
@@ -145,7 +150,7 @@
         <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong><br><small style="color:var(--muted)">Heavy rain & thunder</small></div></div>
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong><br><small style="color:var(--muted)">Pacific tide</small></div></div>
         <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong><br><small style="color:var(--muted)">Birds & canopy rustle</small></div></div>
-        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:20px; font-weight:bold; color:white">Mute</button>
+        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:20px; font-weight:bold; color:white; cursor:pointer">Mute</button>
     </div>
 
     <div class="view">
@@ -172,12 +177,12 @@
         <div class="card">
             <strong>Journal Entry</strong>
             <textarea id="journal" style="margin:12px 0; height:80px; resize:none;" placeholder="How are you feeling?"></textarea>
-            <button onclick="saveJournal()">Save Reflection</button>
+            <button onclick="saveJournal()" style="cursor:pointer">Save Reflection</button>
         </div>
 
         <div style="display:flex; gap:10px; margin-bottom: 4rem;">
-            <button onclick="exportData()" style="font-size:0.8rem">📥 Backup</button>
-            <button onclick="document.getElementById('importFile').click()" style="font-size:0.8rem">📤 Restore</button>
+            <button class="btn-outline" onclick="exportData()" style="cursor:pointer">📥 Backup</button>
+            <button class="btn-outline" onclick="document.getElementById('importFile').click()" style="cursor:pointer">📤 Restore</button>
             <input type="file" id="importFile" style="display:none" onchange="importData(event)" accept=".csv">
         </div>
     </div>
@@ -196,7 +201,6 @@
 <audio id="naturePlayer" loop></audio>
 
 <script>
-/* Same Logic as before with updated selectors */
 const dp = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().slice(0, 10);
 dp.value = todayStr;
@@ -257,6 +261,7 @@ function render() {
         row.className = 'habit';
         row.innerHTML = `<div style="flex:1"><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s} days</small></div>
             <div style="display:flex; align-items:center; gap:15px">
+                <button onclick="deleteHabit(${i})" style="width:auto; font-size:0.6rem; padding:4px 8px; background:none; border-color:var(--red); color:var(--red)">Del</button>
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
             </div>`;
         hl.appendChild(row);
@@ -283,14 +288,21 @@ function addHabit() {
     save(h); i.value = ''; render();
 }
 
+function deleteHabit(idx) {
+    if (confirm("Delete this habit?")) {
+        const h = load(); h.splice(idx, 1);
+        save(h); render();
+    }
+}
+
 function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Reflection Saved"); }
 
 function exportData() {
     const h = load();
     let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name}",${date},DONE\n`));
+    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
     Object.keys(localStorage).filter(k => k.startsWith('j-')).forEach(k => {
-        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k)}"\n`;
+        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g,'""')}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -320,9 +332,13 @@ function importData(e) {
 
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = t+'.mp3'; player.play().catch(() => alert("Add storm.mp3, waves.mp3, forest.mp3 to your folder to hear soundscapes.")); 
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    el.classList.add('playing');
+    player.src = './' + t + '.mp3'; 
+    player.play()
+        .then(() => {
+            document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+            el.classList.add('playing');
+        })
+        .catch(() => alert("Soundscape not found. Ensure " + t + ".mp3 is in your GitHub repo.")); 
 }
 function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
