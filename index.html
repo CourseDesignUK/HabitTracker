@@ -8,96 +8,195 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
-            --bg: #020617; --card: #0f172a; --muted: #94a3b8;
-            --g-pale: #86efac; --g-dark: #166534; --yellow: #facc15; 
-            --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
+            --bg: #020617;
+            --card: rgba(30, 41, 59, 0.5);
+            --muted: #94a3b8;
+            --g-pale: #4ade80;
+            --g-dark: #166534;
+            --yellow: #facc15; 
+            --red: #ef4444;
+            --accent: #38bdf8;
+            --border: rgba(255, 255, 255, 0.1);
         }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; overflow: hidden; overscroll-behavior: none; }
+        
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            color: #fff; 
+            overflow: hidden; 
+            overscroll-behavior: none; 
+        }
 
-        #screen-container { display: flex; width: 300%; height: 100vh; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); transform: translateX(-33.33%); }
-        .view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1.2rem; padding-top: env(safe-area-inset-top); position: relative; }
+        #screen-container { 
+            display: flex; 
+            width: 300%; 
+            height: 100vh; 
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            transform: translateX(-33.33%); 
+        }
 
-        /* Heatmap Styles */
-        .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 5px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-day { aspect-ratio: 1; border-radius: 4px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
+        .view { 
+            width: 33.33%; 
+            height: 100vh; 
+            overflow-y: auto; 
+            padding: 1.5rem; 
+            padding-top: env(safe-area-inset-top, 20px); 
+            position: relative;
+            scrollbar-width: none;
+        }
+        .view::-webkit-scrollbar { display: none; }
 
         /* UI Components */
-        .track-card { background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
-        .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); }
-        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
-        .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .check.done { background: #22c55e; color: #020617; }
-        .del-btn { color: var(--red); font-size: 0.65rem; background: none; border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 6px; border-radius: 4px; opacity: 0.5; }
+        .card { 
+            background: var(--card); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px; 
+            padding: 1.2rem; 
+            margin-bottom: 1rem; 
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
 
-        .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
-        .plant { height: 55px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.5s ease; }
-        
-        .breath-circle { width: 220px; height: 220px; border: 4px solid #22c55e; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
-        
-        input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-        .btn-primary { background: #22c55e; color: #020617; border: none; font-weight: 700; }
-        .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.75rem; padding: 10px; flex: 1; }
-        @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
+        .track-card { 
+            background: var(--card); 
+            border-radius: 16px; 
+            padding: 1.2rem; 
+            margin: 10px 0; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            transition: all 0.2s;
+        }
+        .track-card.playing { 
+            border-color: var(--accent); 
+            background: rgba(56, 189, 248, 0.15); 
+            transform: scale(1.02);
+        }
+
+        /* Garden & Plants */
+        .garden { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); 
+            gap: 12px; 
+            margin-top: 15px;
+        }
+        .plant { 
+            height: 65px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 50% 50% 15px 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.8rem; 
+            animation: sway 3s ease-in-out infinite alternate;
+        }
+        @keyframes sway {
+            from { transform: rotate(-3deg); }
+            to { transform: rotate(3deg); }
+        }
+
+        /* Habits */
+        .habit { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .check { 
+            width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); 
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
+
+        /* Breathing */
+        .breath-circle { 
+            width: 240px; height: 240px; 
+            border: 4px solid rgba(74, 222, 128, 0.3); 
+            border-radius: 50%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            transition: transform 4s linear; 
+            position: relative;
+        }
+        .breath-circle::after {
+            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
+            border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0;
+            animation: ripple 4s infinite ease-out;
+        }
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.4; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* Calendar Heatmap */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); }
+        .cal-day.active { border: 2px solid var(--accent); color: #fff; }
+
+        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="screen-container">
     <div class="view" id="media-view">
-        <h2 style="color: var(--accent)">Soundscapes</h2>
-        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div>
-        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div>
-        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><strong>Rainforest</strong></div>
-        <button onclick="stopAudio()" style="width:100%; background:var(--red); border:none; margin-top:20px; font-weight:bold">Mute</button>
+        <h2 style="color: var(--accent); margin-top:0">Soundscapes</h2>
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong><br><small style="color:var(--muted)">Heavy rain & thunder</small></div></div>
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong><br><small style="color:var(--muted)">Pacific tide</small></div></div>
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong><br><small style="color:var(--muted)">Birds & canopy rustle</small></div></div>
+        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:20px; font-weight:bold; color:white">Mute</button>
     </div>
 
     <div class="view">
-        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
+        <div class="card">
+            <strong id="gardenTitle" style="font-size:1.1rem">Garden</strong>
+            <div id="garden" class="garden"></div>
+        </div>
         
         <div id="habitList" class="card"></div>
 
-        <div class="card" style="padding: 0.8rem; background: #1e293b;">
-            <div style="display:flex; justify-content: space-between; align-items:center;">
-                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Progress Heatmap</span>
-                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size:0.8rem; color:var(--accent); width:auto;">
+        <div class="card">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:12px">
+                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Heatmap</span>
+                <input type="date" id="datePicker" style="width:auto; border:none; background:none; color:var(--accent); padding:0">
             </div>
-            <div class="cal-header" style="margin-top:10px"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
             <div id="calendar" class="calendar-grid"></div>
         </div>
         
-        <div class="card" style="display:flex; gap:8px">
-            <input id="habitInput" placeholder="New habit..." style="flex:1">
-            <button class="btn-primary" onclick="addHabit()">Add</button>
+        <div class="card">
+            <input id="habitInput" placeholder="New habit name...">
+            <button class="btn-primary" onclick="addHabit()">Plant New Habit</button>
         </div>
 
         <div class="card">
-            <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="Daily reflection..."></textarea>
-            <button style="width:100%" onclick="saveJournal()">Save Entry</button>
+            <strong>Journal Entry</strong>
+            <textarea id="journal" style="margin:12px 0; height:80px; resize:none;" placeholder="How are you feeling?"></textarea>
+            <button onclick="saveJournal()">Save Reflection</button>
         </div>
 
-        <div style="display:flex; gap:8px; margin-bottom: 3rem;">
-            <button class="btn-outline" onclick="exportData()">📥 Export</button>
-            <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 Import</button>
+        <div style="display:flex; gap:10px; margin-bottom: 4rem;">
+            <button onclick="exportData()" style="font-size:0.8rem">📥 Backup</button>
+            <button onclick="document.getElementById('importFile').click()" style="font-size:0.8rem">📤 Restore</button>
             <input type="file" id="importFile" style="display:none" onchange="importData(event)" accept=".csv">
         </div>
     </div>
 
-    <div class="view" id="breath-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <h3 style="color: var(--g-pale); margin-bottom: 2rem;">Box Breathing</h3>
+        
         <div class="breath-circle" id="circle">
-            <span id="label" style="text-transform:uppercase; letter-spacing:1px; color:#22c55e">Prepare</span>
-            <div style="font-size:3.5rem; font-weight:800" id="count">...</div>
+            <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Prepare</span>
+            <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
         </div>
+        <p style="color: var(--muted); margin-top: 2rem; text-align: center; font-size: 0.9rem;">Swipe left to return to Garden</p>
     </div>
 </div>
 
 <audio id="naturePlayer" loop></audio>
 
 <script>
+/* Same Logic as before with updated selectors */
 const dp = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().slice(0, 10);
 dp.value = todayStr;
@@ -132,23 +231,12 @@ function renderCalendar() {
         const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const doneCount = h.reduce((acc, hab) => acc + (hab.done.includes(dStr) ? 1 : 0), 0);
         const ratio = h.length ? (doneCount / h.length) : 0;
-        
         const dEl = document.createElement('div');
         dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
-        
         if (ratio > 0) {
-            dEl.classList.add('filled');
-            dEl.style.color = "#000";
-            if (ratio > 0.75) {
-                dEl.style.background = "var(--g-dark)";
-                dEl.style.color = "#fff";
-            } else if (ratio >= 0.50) {
-                dEl.style.background = "var(--g-pale)";
-            } else {
-                dEl.style.background = "var(--yellow)";
-            }
+            dEl.style.background = ratio > 0.75 ? "var(--g-dark)" : ratio >= 0.5 ? "var(--g-pale)" : "var(--yellow)";
+            dEl.style.color = ratio >= 0.5 ? "#fff" : "#000";
         }
-        
         dEl.innerText = day;
         dEl.onclick = () => { dp.value = dStr; render(); };
         cal.appendChild(dEl);
@@ -159,8 +247,7 @@ function render() {
     const h = load(), d = dp.value;
     const hl = document.getElementById('habitList');
     const g = document.getElementById('garden');
-    
-    document.getElementById('gardenTitle').innerText = (d === todayStr) ? "Garden (today)" : `Garden (history: ${d})`;
+    document.getElementById('gardenTitle').innerText = (d === todayStr) ? "Your Garden" : `Garden on ${d}`;
     document.getElementById('journal').value = localStorage.getItem('j-'+d) || '';
     hl.innerHTML = ''; g.innerHTML = '';
 
@@ -168,15 +255,15 @@ function render() {
         const s = calculateStreakOnDate(x.done, d);
         const row = document.createElement('div');
         row.className = 'habit';
-        row.innerHTML = `<div style="flex:1"><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s}d</small></div>
-            <div style="display:flex; align-items:center; gap:10px">
-                <button class="del-btn" onclick="deleteHabit(${i})">Del</button>
+        row.innerHTML = `<div style="flex:1"><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s} days</small></div>
+            <div style="display:flex; align-items:center; gap:15px">
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
             </div>`;
         hl.appendChild(row);
 
         const p = document.createElement('div');
         p.className = 'plant';
+        p.style.animationDelay = `${i * 0.2}s`;
         p.innerHTML = s >= 7 ? '🌻' : s >= 3 ? '🌿' : s >= 1 ? '🌱' : '🕳️';
         g.appendChild(p);
     });
@@ -196,25 +283,18 @@ function addHabit() {
     save(h); i.value = ''; render();
 }
 
-function deleteHabit(idx) {
-    if (confirm("Delete this habit?")) {
-        const h = load(); h.splice(idx, 1);
-        save(h); render();
-    }
-}
-
-function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal Saved"); }
+function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Reflection Saved"); }
 
 function exportData() {
     const h = load();
     let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
+    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name}",${date},DONE\n`));
     Object.keys(localStorage).filter(k => k.startsWith('j-')).forEach(k => {
-        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g, '""')}"\n`;
+        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k)}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `Garden_Backup_${dp.value}.csv`; a.click();
+    a.download = `MindGarden_Backup.csv`; a.click();
 }
 
 function importData(e) {
@@ -225,27 +305,22 @@ function importData(e) {
         lines.forEach(line => {
             const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             if (parts.length < 3) return;
-            const type = parts[0].trim();
-            const name = parts[1].replace(/"/g,'').trim();
-            const date = parts[2].trim();
-            const content = parts[3] ? parts[3].replace(/"/g,'').trim() : "";
+            const type = parts[0].trim(), name = parts[1].replace(/"/g,''), date = parts[2].trim(), content = parts[3] ? parts[3].replace(/"/g,'') : "";
             if (type === 'Habit') {
                 let habit = h.find(x => x.name === name);
                 if (!habit) { habit = {name, done:[]}; h.push(habit); }
                 habit.done.push(date);
-            } else if (type === 'Journal') {
-                localStorage.setItem('j-'+date, content);
-            }
+            } else if (type === 'Journal') localStorage.setItem('j-'+date, content);
         });
         if (h.length) save(h);
-        render(); alert("Import Complete");
+        render(); alert("Garden Restored");
     };
     reader.readAsText(e.target.files[0]);
 }
 
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = t+'.mp3'; player.play(); 
+    player.src = t+'.mp3'; player.play().catch(() => alert("Add storm.mp3, waves.mp3, forest.mp3 to your folder to hear soundscapes.")); 
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
 }
@@ -254,7 +329,7 @@ function stopAudio() { player.pause(); document.querySelectorAll('.track-card').
 let bT;
 function startBreathing() {
     const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
-    const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
+    const steps=[{t:'Inhale',s:'scale(1.2)'},{t:'Hold',s:'scale(1.2)'},{t:'Exhale',s:'scale(0.8)'},{t:'Hold',s:'scale(0.8)'}];
     let step=0, sec=4;
     const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; };
     update();
