@@ -3,255 +3,225 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Mind Garden Pro</title>
+<title>Mind Garden CSV</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root {
   --bg: #020617; --card: #0f172a; --muted: #94a3b8;
   --g1: #dcfce7; --g2: #86efac; --g3: #22c55e; --g4: #15803d;
-  --today: #38bdf8; --accent: #f472b6;
+  --today: #38bdf8;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { 
   margin: 0; font-family: -apple-system, system-ui, sans-serif; 
-  background: linear-gradient(180deg, #020617, #022c22); color: #fff; 
+  background: #020617; color: #fff; 
   padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
-  overscroll-behavior-y: contain; line-height: 1.5;
 }
-header { text-align: center; padding: 1.5rem 0; }
-main { max-width: 500px; margin: auto; }
+main { max-width: 500px; margin: auto; padding-top: 1rem; }
 
-.card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid #1f2937; }
-.row { display: flex; gap: .5rem; align-items: center; }
-
-input, textarea, button { background: #020617; border: 1px solid #1f2937; border-radius: 12px; color: #fff; padding: .7rem; font-family: inherit; font-size: 16px; }
-button { cursor: pointer; transition: transform 0.1s; background: #1e293b; }
-button:active { transform: scale(0.95); }
-
-.habit { display: flex; justify-content: space-between; align-items: center; padding: .8rem 0; border-bottom: 1px solid #1f2937; }
-.streak-badge { font-size: 0.7rem; background: rgba(56, 189, 248, 0.15); color: var(--today); padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600; }
-
-.check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-.check.done { background: #22c55e; color: #022c22; font-weight: bold; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
-
-.calendar-wrap { overflow-x: auto; scrollbar-width: none; touch-action: pan-x; margin-top: 1rem; }
-.calendar-wrap::-webkit-scrollbar { display: none; }
-table { border-collapse: collapse; font-size: .75rem; width: max-content; }
-th, td { padding: 4px; min-width: 22px; text-align: center; }
-.sticky { position: sticky; left: 0; background: #0f172a; z-index: 2; text-align: left; padding-right: 10px; }
-.heat { width: 18px; height: 18px; border-radius: 4px; margin: auto; transition: 0.3s; cursor: pointer; }
-.today { outline: 2px solid var(--today); outline-offset: 1px; }
-
-.garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 1rem; margin-top: 1rem; }
-.plant { 
-  height: 80px; border-radius: 16px; background: rgba(2, 6, 23, 0.5); 
-  display: flex; flex-direction: column; align-items: center; justify-content: center; 
-  border: 1px dashed #334155; font-size: 1.5rem; transition: all 0.5s ease;
+/* UI Box Container */
+.control-panel {
+  background: #1e293b;
+  border-radius: 20px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border: 1px solid #334155;
 }
-.plant-name { font-size: 0.6rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+.input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+.date-row { 
+  display: flex; align-items: center; justify-content: space-between; 
+  background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 12px;
+}
 
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
-.stat-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; }
-.stat-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--g2); }
-.stat-lbl { font-size: 0.6rem; color: var(--muted); }
+input, textarea, button { 
+  background: #0f172a; border: 1px solid #334155; border-radius: 12px; 
+  color: #fff; padding: 12px; font-size: 16px;
+}
+input[type="date"] { background: transparent; border: none; padding: 0; color-scheme: dark; }
+#habitInput { flex: 1; }
+button { cursor: pointer; font-weight: 600; }
+.btn-primary { background: var(--g3); color: #020617; border: none; }
+.btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; }
+
+.card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid #1f2937; }
+.habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f2937; }
+.check { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; }
+.check.done { background: var(--g3); color: #020617; }
+
+.calendar-wrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; }
+.heat { width: 14px; height: 14px; border-radius: 3px; margin: 2px; }
+
+.garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; }
+.plant { height: 60px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+.backup-zone { display: flex; gap: 8px; margin-top: 1rem; }
+.backup-zone button { flex: 1; padding: 10px; font-size: 0.75rem; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🌱 Mind Garden</h1>
-  <div style="color:var(--muted); font-size: 0.8rem;">Consistency is the Water</div>
-</header>
-
 <main>
-  <div class="stats-grid">
-    <div class="stat-box"><span id="stat-total" class="stat-val">0</span><span class="stat-lbl">COMPLETIONS</span></div>
-    <div class="stat-box"><span id="stat-best" class="stat-val">0</span><span class="stat-lbl">BEST STREAK</span></div>
-  </div>
-
-  <div class="card row">
-    <input id="habitInput" placeholder="New habit..." style="flex:1">
-    <button onclick="addHabit()">Add</button>
-    <input type="date" id="datePicker">
+  <div class="control-panel">
+    <div class="input-group">
+      <input id="habitInput" placeholder="Add new habit...">
+      <button class="btn-primary" onclick="addHabit()">Add</button>
+    </div>
+    <div class="date-row">
+      <span style="font-size: 0.8rem; color: var(--muted)">Log for:</span>
+      <input type="date" id="datePicker">
+    </div>
   </div>
 
   <div class="card" id="habitList"></div>
 
   <div class="card">
     <strong>Journal</strong>
-    <textarea id="journal" style="width:100%; height:80px; margin-top:0.5rem; border:none; background:rgba(0,0,0,0.2)" placeholder="How are you feeling?"></textarea>
-    <button style="width:100%; margin-top:.5rem; background: var(--g4);" onclick="saveJournal()">Save Entry</button>
+    <textarea id="journal" style="width:100%; margin-top:10px; height:80px" placeholder="Write here..."></textarea>
+    <button style="width:100%; margin-top:10px" onclick="saveJournal()">Save Entry</button>
   </div>
 
   <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center">
-        <strong>Monthly Growth</strong>
-        <div id="monthLabel" style="font-size:0.8rem; color:var(--today)"></div>
-    </div>
-    <div id="monthly" class="calendar-wrap"></div>
-    <div style="font-size:0.6rem; color:var(--muted); margin-top:8px; text-align:center">← Swipe to change month • Pinch to zoom →</div>
-  </div>
-
-  <div class="card">
-    <strong>Your Garden</strong>
+    <strong>Garden</strong>
     <div id="garden" class="garden"></div>
-    <button onclick="exportData()" style="width:100%; margin-top:1.5rem; font-size:0.7rem; opacity:0.5">Backup Data (JSON)</button>
+    
+    <div class="backup-zone">
+      <button class="btn-outline" onclick="exportCSV()">📥 Export CSV</button>
+      <button class="btn-outline" onclick="document.getElementById('fileInput').click()">📤 Import CSV</button>
+    </div>
+    <input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv">
+  </div>
+
+  <div class="card">
+    <strong>Activity</strong>
+    <div id="monthly" class="calendar-wrap"></div>
   </div>
 </main>
 
 <script>
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
-let zoom = 1;
 
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-const getStreak = (doneDates) => {
-    if (!doneDates.length) return 0;
-    const sorted = [...new Set(doneDates)].sort().reverse();
-    let streak = 0;
-    let curr = new Date();
-    curr.setHours(0,0,0,0);
-    for (let dateStr of sorted) {
-        const d = new Date(dateStr + 'T00:00:00');
-        const diff = Math.floor((curr - d) / (1000 * 60 * 60 * 24));
-        if (diff <= 1) { streak++; curr = d; } else break;
-    }
-    return streak;
-};
-
 function addHabit() {
-    const i = document.getElementById('habitInput');
-    if (!i.value.trim()) return;
-    const h = load();
-    h.push({ name: i.value, done: [] });
-    save(h); i.value = ''; render();
+  const i = document.getElementById('habitInput');
+  if (!i.value.trim()) return;
+  const h = load();
+  h.push({ name: i.value, done: [] });
+  save(h); i.value = ''; render();
 }
 
 function toggle(i) {
-    const h = load();
-    const d = dp.value;
-    const x = h[i].done.indexOf(d);
-    x >= 0 ? h[i].done.splice(x, 1) : h[i].done.push(d);
-    save(h); render();
+  const h = load();
+  const d = dp.value;
+  const idx = h[i].done.indexOf(d);
+  idx >= 0 ? h[i].done.splice(idx, 1) : h[i].done.push(d);
+  save(h); render();
 }
 
 function render() {
-    const h = load(); const d = dp.value;
-    const hl = document.getElementById('habitList'); hl.innerHTML = '';
-    document.getElementById('journal').value = localStorage.getItem('j-' + d) || '';
-    
-    let totalCompletions = 0;
-    let maxStreak = 0;
-
-    h.forEach((x, i) => {
-        totalCompletions += x.done.length;
-        const streak = getStreak(x.done);
-        if (streak > maxStreak) maxStreak = streak;
-
-        const row = document.createElement('div'); row.className = 'habit';
-        row.innerHTML = `
-            <div style="display:flex; align-items:center">
-                ${x.name} ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}</span>` : ''}
-            </div>
-            <div class="check ${x.done.includes(d) ? 'done' : ''}" onclick="toggle(${i})">
-                ${x.done.includes(d) ? '✓' : ''}
-            </div>`;
-        hl.appendChild(row);
-    });
-
-    document.getElementById('stat-total').textContent = totalCompletions;
-    document.getElementById('stat-best').textContent = maxStreak;
-
-    renderMonth(); renderGarden();
-}
-
-function saveJournal() { 
-    localStorage.setItem('j-' + dp.value, document.getElementById('journal').value);
-    alert("Journal saved!");
+  const h = load(); const d = dp.value;
+  const hl = document.getElementById('habitList'); hl.innerHTML = '';
+  document.getElementById('journal').value = localStorage.getItem('j-' + d) || '';
+  
+  h.forEach((x, i) => {
+    const row = document.createElement('div'); row.className = 'habit';
+    row.innerHTML = `<div>${x.name}</div>
+      <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
+    hl.appendChild(row);
+  });
+  renderMonth(); renderGarden();
 }
 
 function renderMonth() {
-    const h = load(); const c = document.getElementById('monthly');
-    const sel = new Date(dp.value + 'T00:00:00');
-    const y = sel.getFullYear(), m = sel.getMonth();
-    document.getElementById('monthLabel').textContent = sel.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-    
-    const days = new Date(y, m + 1, 0).getDate();
-    const todayStr = new Date().toISOString().slice(0, 10);
-    
-    let t = `<table style="transform:scale(${zoom}); transform-origin:left top"><tr><th class="sticky">Habit</th>`;
-    for (let d = 1; d <= days; d++) t += `<th>${d}</th>`;
+  const h = load(); const c = document.getElementById('monthly');
+  const sel = new Date(dp.value + 'T00:00:00');
+  const y = sel.getFullYear(), m = sel.getMonth();
+  const days = new Date(y, m + 1, 0).getDate();
+  let t = '<table>';
+  h.forEach(x => {
+    t += '<tr>';
+    for(let d=1; d<=days; d++) {
+      const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      t += `<td><div class="heat" style="background:${x.done.includes(k)?'var(--g3)':'#1e293b'}"></div></td>`;
+    }
     t += '</tr>';
-
-    h.forEach(x => {
-        t += `<tr><td class="sticky">${x.name}</td>`;
-        for (let d = 1; d <= days; d++) {
-            const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const done = x.done.includes(k);
-            const isToday = k === todayStr;
-            t += `<td><div class="heat ${isToday ? 'today' : ''}" onclick="jump('${k}')" style="background:${done ? 'var(--g3)' : '#1e293b'}"></div></td>`;
-        }
-        t += '</tr>';
-    });
-    c.innerHTML = t + '</table>';
+  });
+  c.innerHTML = t + '</table>';
 }
 
 function renderGarden() {
-    const g = document.getElementById('garden'); g.innerHTML = '';
-    load().forEach(x => {
-        const count = x.done.length;
-        const div = document.createElement('div'); div.className = 'plant';
-        
-        let stage = '🕳️';
-        if (count >= 1) stage = '🌱';
-        if (count >= 5) stage = '🌿';
-        if (count >= 12) stage = '🪴';
-        if (count >= 25) stage = '🌸';
-        if (count >= 50) stage = '🌳';
+  const g = document.getElementById('garden'); g.innerHTML = '';
+  load().forEach(x => {
+    const count = x.done.length;
+    const div = document.createElement('div'); div.className = 'plant';
+    div.innerHTML = count > 10 ? '🌸' : count > 0 ? '🌱' : '🕳️';
+    g.appendChild(div);
+  });
+}
 
-        div.innerHTML = `<span>${stage}</span><span class="plant-name">${x.name.substring(0,6)}</span>`;
-        g.appendChild(div);
+function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal Saved"); }
+
+// CSV BACKUP SYSTEM
+function exportCSV() {
+  const habits = load();
+  let csv = "Type,Name,Date/Value,Content\n";
+  
+  // Export Habits
+  habits.forEach(h => {
+    h.done.forEach(date => {
+      csv += `Habit,"${h.name}",${date},DONE\n`;
     });
+  });
+
+  // Export Journal
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('j-')) {
+      const date = key.replace('j-', '');
+      const content = localStorage.getItem(key).replace(/"/g, '""');
+      csv += `Journal,,${date},"${content}"\n`;
+    }
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mind_garden_backup_${dp.value}.csv`;
+  a.click();
 }
 
-function jump(k) { dp.value = k; render(); }
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rows = e.target.result.split('\n').slice(1);
+    const habits = [];
+    
+    rows.forEach(row => {
+      const [type, name, date, content] = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+      if (!type) return;
+      const cleanName = name?.replace(/"/g, '');
+      const cleanContent = content?.replace(/"/g, '');
 
-function exportData() {
-    const data = JSON.stringify(localStorage);
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `garden-backup-${dp.value}.json`;
-    a.click();
+      if (type.trim() === 'Habit') {
+        let h = habits.find(x => x.name === cleanName);
+        if (!h) { h = { name: cleanName, done: [] }; habits.push(h); }
+        h.done.push(date.trim());
+      } else if (type.trim() === 'Journal') {
+        localStorage.setItem('j-' + date.trim(), cleanContent.trim());
+      }
+    });
+    
+    if (habits.length > 0) save(habits);
+    alert("Import Complete!");
+    render();
+  };
+  reader.readAsText(file);
 }
-
-// Mobile Interactions
-let startX = 0;
-document.getElementById('monthly').addEventListener('touchstart', e => startX = e.touches[0].clientX);
-document.getElementById('monthly').addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 70) {
-        const d = new Date(dp.value + 'T00:00:00');
-        d.setMonth(d.getMonth() + (dx < 0 ? 1 : -1));
-        dp.value = d.toISOString().slice(0, 10);
-        render();
-    }
-});
-
-let lastDist = null;
-document.getElementById('monthly').addEventListener('touchmove', e => {
-    if (e.touches.length === 2) {
-        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        if (lastDist) {
-            zoom = Math.min(1.5, Math.max(0.6, zoom + (dist - lastDist) / 400));
-            renderMonth();
-        }
-        lastDist = dist;
-    }
-});
-document.getElementById('monthly').addEventListener('touchend', () => lastDist = null);
 
 dp.onchange = render;
 render();
