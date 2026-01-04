@@ -9,7 +9,7 @@
     <style>
         :root {
             --bg: #020617; --card: #0f172a; --muted: #94a3b8;
-            --g3: #22c55e; --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
+            --g3: #22c55e; --yellow: #facc15; --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; overflow: hidden; overscroll-behavior: none; }
@@ -20,8 +20,8 @@
         /* Heatmap Styles */
         .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 5px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-day { aspect-ratio: 1; border-radius: 3px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+        .cal-day { aspect-ratio: 1; border-radius: 4px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
 
         /* UI Components */
         .track-card { background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 15px; }
@@ -30,18 +30,16 @@
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
         .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .check.done { background: var(--g3); color: #020617; }
-        .del-btn { color: var(--red); font-size: 0.75rem; background: none; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: 6px; cursor: pointer; opacity: 0.6; }
-        .del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+        .del-btn { color: var(--red); font-size: 0.65rem; background: none; border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 6px; border-radius: 4px; opacity: 0.5; }
 
         .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
         .plant { height: 55px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.5s ease; }
         
-        #breath-view { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .breath-circle { width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
         
         input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
         .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; }
-        .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; padding: 8px; flex: 1; }
+        .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.75rem; padding: 10px; flex: 1; }
         @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
@@ -66,7 +64,7 @@
             <div id="calendar" class="calendar-grid"></div>
         </div>
 
-        <div class="card"><strong>Garden (History View)</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
+        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
         
         <div id="habitList" class="card"></div>
         
@@ -77,21 +75,22 @@
 
         <div class="card">
             <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="How's your mind today?"></textarea>
+            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="Daily reflection..."></textarea>
             <button style="width:100%" onclick="saveJournal()">Save Entry</button>
         </div>
 
-        <div style="margin-bottom: 2rem;">
-            <button class="btn-outline" style="width:100%" onclick="exportData()">📥 Export Garden History (CSV)</button>
+        <div style="display:flex; gap:8px; margin-bottom: 3rem;">
+            <button class="btn-outline" onclick="exportData()">📥 Export</button>
+            <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 Import</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)" accept=".csv">
         </div>
     </div>
 
-    <div class="view" id="breath-view">
+    <div class="view" id="breath-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <div class="breath-circle" id="circle">
             <span id="label" style="text-transform:uppercase; letter-spacing:1px; color:var(--g3)">Prepare</span>
             <div style="font-size:3.5rem; font-weight:800" id="count">...</div>
         </div>
-        <p style="margin-top:2rem; color:var(--muted); text-align:center">Inhale • Hold • Exhale • Hold</p>
     </div>
 </div>
 
@@ -99,23 +98,20 @@
 
 <script>
 const dp = document.getElementById('datePicker');
-dp.value = new Date().toISOString().slice(0, 10);
+const todayStr = new Date().toISOString().slice(0, 10);
+dp.value = todayStr;
+
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-// --- CALENDAR & STREAKS ---
+// --- ANALYTICS & CALENDAR ---
 function calculateStreakOnDate(dates, targetDateStr) {
-    const targetDate = new Date(targetDateStr); targetDate.setHours(0,0,0,0);
-    const sorted = [...new Set(dates)].map(d => new Date(d)).filter(d => d <= targetDate).sort((a,b) => b-a);
-    if(!sorted.length) return 0;
-    
-    let latest = sorted[0]; latest.setHours(0,0,0,0);
-    if ((targetDate - latest) / 86400000 > 0) return 0;
-
+    const targetDate = new Date(targetDateStr + "T12:00:00");
+    const sorted = [...new Set(dates)].map(d => new Date(d + "T12:00:00")).filter(d => d <= targetDate).sort((a,b) => b-a);
+    if(!sorted.length || (targetDate - sorted[0]) / 86400000 > 0) return 0;
     let streak = 0;
     for (let i = 0; i < sorted.length; i++) {
-        let expected = new Date(targetDate);
-        expected.setDate(targetDate.getDate() - i);
+        let expected = new Date(targetDate); expected.setDate(targetDate.getDate() - i);
         if (sorted[i].getTime() === expected.getTime()) streak++; else break;
     }
     return streak;
@@ -124,22 +120,35 @@ function calculateStreakOnDate(dates, targetDateStr) {
 function renderCalendar() {
     const cal = document.getElementById('calendar');
     const h = load();
-    const curr = new Date(dp.value + "T12:00:00"); // Avoid timezone shift
+    const curr = new Date(dp.value + "T12:00:00");
     const month = curr.getMonth(), year = curr.getFullYear();
     document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
     cal.innerHTML = '';
     const first = new Date(year, month, 1).getDay();
     const total = new Date(year, month + 1, 0).getDate();
+    
     for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
     for (let day = 1; day <= total; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const count = h.reduce((acc, hab) => acc + (hab.done.includes(dateStr) ? 1 : 0), 0);
-        const intensity = h.length ? count / h.length : 0;
+        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const doneCount = h.reduce((acc, hab) => acc + (hab.done.includes(dStr) ? 1 : 0), 0);
+        const ratio = h.length ? (doneCount / h.length) : 0;
+        
         const dEl = document.createElement('div');
-        dEl.className = `cal-day ${dateStr === dp.value ? 'active' : ''}`;
-        if(intensity > 0) dEl.style.background = `rgba(34, 197, 94, ${0.2 + (intensity * 0.8)})`;
+        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
+        
+        if (ratio > 0) {
+            dEl.classList.add('filled');
+            if (ratio >= 0.5) {
+                // Vibrant Greens for >= 50%
+                dEl.style.background = `rgba(34, 197, 94, ${0.3 + (ratio * 0.7)})`;
+            } else {
+                // Yellow for < 50%
+                dEl.style.background = `rgba(250, 204, 21, ${0.4 + (ratio * 0.6)})`;
+            }
+        }
+        
         dEl.innerText = day;
-        dEl.onclick = () => { dp.value = dateStr; render(); };
+        dEl.onclick = () => { dp.value = dStr; render(); };
         cal.appendChild(dEl);
     }
 }
@@ -148,6 +157,8 @@ function render() {
     const h = load(), d = dp.value;
     const hl = document.getElementById('habitList');
     const g = document.getElementById('garden');
+    
+    document.getElementById('gardenTitle').innerText = (d === todayStr) ? "Garden (today)" : `Garden (history: ${d})`;
     document.getElementById('journal').value = localStorage.getItem('j-'+d) || '';
     hl.innerHTML = ''; g.innerHTML = '';
 
@@ -155,13 +166,9 @@ function render() {
         const s = calculateStreakOnDate(x.done, d);
         const row = document.createElement('div');
         row.className = 'habit';
-        row.innerHTML = `
-            <div style="flex:1">
-                <strong>${x.name}</strong><br>
-                <small style="color:var(--muted)">Streak: ${s}d</small>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px">
-                <button class="del-btn" onclick="deleteHabit(${i})">Delete</button>
+        row.innerHTML = `<div style="flex:1"><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s}d</small></div>
+            <div style="display:flex; align-items:center; gap:10px">
+                <button class="del-btn" onclick="deleteHabit(${i})">Del</button>
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
             </div>`;
         hl.appendChild(row);
@@ -183,40 +190,67 @@ function toggle(idx) {
 }
 
 function addHabit() {
-    const i = document.getElementById('habitInput'); if(!i.value) return;
-    const h = load(); h.push({name: i.value, done: []});
+    const i = document.getElementById('habitInput'); if(!i.value.trim()) return;
+    const h = load(); h.push({name: i.value.trim(), done: []});
     save(h); i.value = ''; render();
 }
 
 function deleteHabit(idx) {
-    if (confirm("Permanently delete this habit and all its history?")) {
-        const h = load();
-        h.splice(idx, 1);
-        save(h);
-        render();
+    if (confirm("Delete this habit?")) {
+        const h = load(); h.splice(idx, 1);
+        save(h); render();
     }
 }
 
-function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal saved for " + dp.value); }
+function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal Saved"); }
 
 function exportData() {
     const h = load();
-    let csv = "Type,Item,Date,Status/Content\n";
+    let csv = "Type,Item,Date,Content\n";
     h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
     Object.keys(localStorage).filter(k => k.startsWith('j-')).forEach(k => {
         csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g, '""')}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `MindGarden_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `Garden_Backup_${dp.value}.csv`; a.click();
 }
 
-// --- UTILS (SOUND, BREATH, NAV) ---
+function importData(e) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const lines = event.target.result.split('\n').slice(1);
+        const h = [];
+        lines.forEach(line => {
+            const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (parts.length < 3) return;
+            const type = parts[0].trim();
+            const name = parts[1].replace(/"/g,'').trim();
+            const date = parts[2].trim();
+            const content = parts[3].replace(/"/g,'').trim();
+
+            if (type === 'Habit') {
+                let habit = h.find(x => x.name === name);
+                if (!habit) { habit = {name, done:[]}; h.push(habit); }
+                habit.done.push(date);
+            } else if (type === 'Journal') {
+                localStorage.setItem('j-'+date, content);
+            }
+        });
+        if (h.length) save(h);
+        render(); alert("Import Complete");
+    };
+    reader.readAsText(e.target.files[0]);
+}
+
+// --- UTILS ---
 const player = document.getElementById('naturePlayer');
-function playTrack(t, el) { player.src = t+'.mp3'; player.play(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); el.classList.add('playing');}
-function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));}
+function playTrack(t, el) { 
+    player.src = t+'.mp3'; player.play(); 
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+}
+function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
 let bT;
 function startBreathing() {
