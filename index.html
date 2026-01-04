@@ -23,16 +23,11 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        /* Fixes iOS White Bar */
-        html { 
-            background: var(--bg); 
-            height: 100%; 
-        }
+        html { background: var(--bg); height: 100%; }
 
         body { 
             margin: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
             background: radial-gradient(circle at top right, #0f172a, #020617);
             color: #fff; 
             overflow: hidden; 
@@ -40,26 +35,24 @@
             height: 100%;
         }
 
+        /* The Snapping Container */
         #screen-container { 
             display: flex; 
             width: 300%; 
-            height: 100vh; 
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-            transform: translateX(-33.33%); 
+            height: 100%; 
+            will-change: transform;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .view { 
-            width: 33.33%; 
+            width: 33.333%; 
             height: 100vh; 
             overflow-y: auto; 
             padding: 1.5rem; 
-            /* iOS Safe Area handling */
             padding-top: calc(env(safe-area-inset-top) + 10px); 
-            padding-bottom: calc(env(safe-area-inset-bottom) + 30px);
+            padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
             position: relative;
-            scrollbar-width: none;
         }
-        .view::-webkit-scrollbar { display: none; }
 
         .card { 
             background: var(--card); 
@@ -69,102 +62,59 @@
             padding: 1.2rem; 
             margin-bottom: 1rem; 
             border: 1px solid var(--border);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         }
 
-        .track-card { 
-            background: var(--card); 
-            border-radius: 16px; 
-            padding: 1.2rem; 
-            margin: 10px 0; 
-            border: 1px solid var(--border); 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .track-card.playing { 
-            border-color: var(--accent); 
-            background: rgba(56, 189, 248, 0.15); 
-            transform: scale(1.02);
-        }
+        .caffeine-row { display: flex; align-items: center; justify-content: space-between; }
+        .caf-btn { width: 44px; height: 44px; border-radius: 12px; background: #92400e; border: none; color: white; font-size: 1.5rem; font-weight: bold; }
 
-        .garden { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); 
-            gap: 12px; 
-            margin-top: 15px;
-        }
-        .plant { 
-            height: 65px; 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 50% 50% 15px 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.8rem; 
-            animation: sway 3s ease-in-out infinite alternate;
-        }
-        @keyframes sway {
-            from { transform: rotate(-3deg); }
-            to { transform: rotate(3deg); }
-        }
+        .track-card { background: var(--card); border-radius: 16px; padding: 1.2rem; margin: 10px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
+
+        .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 12px; margin-top: 15px; }
+        .plant { height: 65px; background: rgba(255,255,255,0.05); border-radius: 50% 50% 15px 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; animation: sway 3s ease-in-out infinite alternate; }
+        @keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
 
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .check { 
-            width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); 
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
+        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); }
 
-        /* Breathing Circle */
-        .breath-circle { 
-            width: 240px; height: 240px; 
-            border: 4px solid rgba(74, 222, 128, 0.3); 
-            border-radius: 50%; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: transform 4s linear; 
-            position: relative;
-            cursor: pointer;
-        }
-        .breath-circle.animating::after {
-            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
-            border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0;
-            animation: ripple 4s infinite ease-out;
-        }
-        @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.4; }
-            100% { transform: scale(1.4); opacity: 0; }
-        }
+        .breath-circle { width: 240px; height: 240px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; position: relative; }
+        .breath-circle.animating::after { content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
 
-        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; outline: none; }
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; cursor: pointer; }
+        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; }
         .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div id="screen-container">
-    <div class="view" id="media-view">
+    <div class="view">
         <h2 style="color: var(--accent); margin-top:0">Soundscapes</h2>
-        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong><br><small style="color:var(--muted)">Heavy rain & thunder</small></div></div>
-        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong><br><small style="color:var(--muted)">Pacific tide</small></div></div>
-        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong><br><small style="color:var(--muted)">Birds & canopy rustle</small></div></div>
-        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white; cursor:pointer">Mute</button>
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong></div></div>
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong></div></div>
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong></div></div>
+        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white">Mute</button>
     </div>
 
     <div class="view">
         <div class="card">
-            <strong id="gardenTitle" style="font-size:1.1rem">Garden</strong>
-            <div id="garden" class="garden"></div>
+            <div class="caffeine-row">
+                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups today</small></div>
+                <div style="display:flex; gap:10px; align-items:center">
+                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">-</button>
+                    <span id="caffeineCount" style="font-size:1.5rem; font-weight:800; width:20px; text-align:center">0</span>
+                    <button class="caf-btn" onclick="addCaffeine(1)">+</button>
+                </div>
+            </div>
         </div>
-        
+
+        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden"></div></div>
         <div id="habitList" class="card"></div>
 
         <div class="card">
@@ -176,19 +126,13 @@
         </div>
         
         <div class="card">
-            <input id="habitInput" placeholder="New habit name...">
-            <button class="btn-primary" onclick="addHabit()">Plant New Habit</button>
+            <input id="habitInput" placeholder="New habit...">
+            <button class="btn-primary" onclick="addHabit()">Plant Habit</button>
         </div>
 
-        <div class="card">
-            <strong>Journal Entry</strong>
-            <textarea id="journal" style="margin:12px 0; height:80px; resize:none;" placeholder="How are you feeling?"></textarea>
-            <button onclick="saveJournal()" style="cursor:pointer">Save Reflection</button>
-        </div>
-
-        <div style="display:flex; gap:10px;">
-            <button class="btn-outline" onclick="exportData()" style="cursor:pointer">📥 Backup</button>
-            <button class="btn-outline" onclick="document.getElementById('importFile').click()" style="cursor:pointer">📤 Restore</button>
+        <div style="display:flex; gap:10px; margin-top:10px">
+            <button class="btn-outline" onclick="exportData()">📥 Backup</button>
+            <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 Restore</button>
             <input type="file" id="importFile" style="display:none" onchange="importData(event)" accept=".csv">
         </div>
     </div>
@@ -200,7 +144,6 @@
             <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Tap to Start</span>
             <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
         </div>
-        <p style="color: var(--muted); margin-top: 2rem; text-align: center; font-size: 0.9rem;">Swipe left to return to Garden</p>
     </div>
 </div>
 
@@ -211,71 +154,43 @@ const dp = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().slice(0, 10);
 dp.value = todayStr;
 
+/* Logic */
+let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
+function addCaffeine(val) {
+    const d = dp.value;
+    caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
+    localStorage.setItem('caffeine', JSON.stringify(caffeineData));
+    updateCaffeineUI();
+}
+function updateCaffeineUI() {
+    const count = caffeineData[dp.value] || 0;
+    document.getElementById('caffeineCount').innerText = count;
+    document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
+}
+
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
-
-function calculateStreakOnDate(dates, targetDateStr) {
-    const targetDate = new Date(targetDateStr + "T12:00:00");
-    const sorted = [...new Set(dates)].map(d => new Date(d + "T12:00:00")).filter(d => d <= targetDate).sort((a,b) => b-a);
-    if(!sorted.length || (targetDate - sorted[0]) / 86400000 > 0) return 0;
-    let streak = 0;
-    for (let i = 0; i < sorted.length; i++) {
-        let expected = new Date(targetDate); expected.setDate(targetDate.getDate() - i);
-        if (sorted[i].getTime() === expected.getTime()) streak++; else break;
-    }
-    return streak;
-}
-
-function renderCalendar() {
-    const cal = document.getElementById('calendar');
-    const h = load();
-    const curr = new Date(dp.value + "T12:00:00");
-    const month = curr.getMonth(), year = curr.getFullYear();
-    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
-    cal.innerHTML = '';
-    const first = new Date(year, month, 1).getDay();
-    const total = new Date(year, month + 1, 0).getDate();
-    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
-    for (let day = 1; day <= total; day++) {
-        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const doneCount = h.reduce((acc, hab) => acc + (hab.done.includes(dStr) ? 1 : 0), 0);
-        const ratio = h.length ? (doneCount / h.length) : 0;
-        const dEl = document.createElement('div');
-        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
-        if (ratio > 0) {
-            dEl.style.background = ratio > 0.75 ? "var(--g-dark)" : ratio >= 0.5 ? "var(--g-pale)" : "var(--yellow)";
-            dEl.style.color = ratio >= 0.5 ? "#fff" : "#000";
-        }
-        dEl.innerText = day;
-        dEl.onclick = () => { dp.value = dStr; render(); };
-        cal.appendChild(dEl);
-    }
-}
 
 function render() {
     const h = load(), d = dp.value;
     const hl = document.getElementById('habitList');
     const g = document.getElementById('garden');
-    document.getElementById('gardenTitle').innerText = (d === todayStr) ? "Your Garden" : `Garden on ${d}`;
-    document.getElementById('journal').value = localStorage.getItem('j-'+d) || '';
+    document.getElementById('gardenTitle').innerText = (d === todayStr) ? "Garden" : `Garden: ${d}`;
     hl.innerHTML = ''; g.innerHTML = '';
     h.forEach((x, i) => {
-        const s = calculateStreakOnDate(x.done, d);
-        const row = document.createElement('div');
-        row.className = 'habit';
-        row.innerHTML = `<div style="flex:1"><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s} days</small></div>
-            <div style="display:flex; align-items:center; gap:15px">
-                <button onclick="deleteHabit(${i})" style="width:auto; font-size:0.6rem; padding:4px 8px; background:none; border-color:var(--red); color:var(--red)">Del</button>
-                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div>
-            </div>`;
-        hl.appendChild(row);
-        const p = document.createElement('div');
-        p.className = 'plant';
-        p.style.animationDelay = `${i * 0.2}s`;
-        p.innerHTML = s >= 7 ? '🌻' : s >= 3 ? '🌿' : s >= 1 ? '🌱' : '🕳️';
-        g.appendChild(p);
+        const s = calculateStreak(x.done, d);
+        hl.innerHTML += `<div class="habit"><div><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div>
+            <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div></div>`;
+        g.innerHTML += `<div class="plant">${s>=7?'🌻':s>=3?'🌿':s>=1?'🌱':'🕳️'}</div>`;
     });
+    updateCaffeineUI();
     renderCalendar();
+}
+
+function calculateStreak(dates, target) {
+    let s = 0; let curr = new Date(target + "T12:00:00");
+    while(dates.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); }
+    return s;
 }
 
 function toggleHabit(idx) {
@@ -291,93 +206,87 @@ function addHabit() {
     save(h); i.value = ''; render();
 }
 
-function deleteHabit(idx) {
-    if (confirm("Delete this habit?")) {
-        const h = load(); h.splice(idx, 1);
-        save(h); render();
+function renderCalendar() {
+    const cal = document.getElementById('calendar');
+    const h = load(), curr = new Date(dp.value + "T12:00:00");
+    const month = curr.getMonth(), year = curr.getFullYear();
+    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
+    cal.innerHTML = '';
+    const first = new Date(year, month, 1).getDay();
+    const total = new Date(year, month + 1, 0).getDate();
+    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
+    for (let day = 1; day <= total; day++) {
+        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const ratio = h.length ? (h.filter(x => x.done.includes(dStr)).length / h.length) : 0;
+        const dEl = document.createElement('div');
+        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
+        if (ratio > 0) dEl.style.background = ratio > 0.5 ? "var(--g-dark)" : "var(--g-pale)";
+        dEl.innerText = day;
+        dEl.onclick = () => { dp.value = dStr; render(); };
+        cal.appendChild(dEl);
     }
-}
-
-function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Reflection Saved"); }
-
-function exportData() {
-    const h = load();
-    let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
-    Object.keys(localStorage).filter(k => k.startsWith('j-')).forEach(k => {
-        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g,'""')}"\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `MindGarden_Backup.csv`; a.click();
-}
-
-function importData(e) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const lines = event.target.result.split('\n').slice(1);
-        const h = [];
-        lines.forEach(line => {
-            const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if (parts.length < 3) return;
-            const type = parts[0].trim(), name = parts[1].replace(/"/g,''), date = parts[2].trim(), content = parts[3] ? parts[3].replace(/"/g,'') : "";
-            if (type === 'Habit') {
-                let habit = h.find(x => x.name === name);
-                if (!habit) { habit = {name, done:[]}; h.push(habit); }
-                habit.done.push(date);
-            } else if (type === 'Journal') localStorage.setItem('j-'+date, content);
-        });
-        if (h.length) save(h);
-        render(); alert("Garden Restored");
-    };
-    reader.readAsText(e.target.files[0]);
 }
 
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = './' + t + '.mp3'; 
-    player.play().then(() => {
-        document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-        el.classList.add('playing');
-    }).catch(() => alert("Soundscape not found. Ensure " + t + ".mp3 is in your GitHub repo.")); 
+    player.src = './' + t + '.mp3'; player.play();
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
 }
 function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
-let bT, isBreathing = false;
-function toggleBreathing() {
-    isBreathing ? stopBreathing() : startBreathing();
-}
-
-function startBreathing() {
-    isBreathing = true;
-    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
-    c.classList.add('animating');
+let bT, isB = false;
+function toggleBreathing() { isB ? stopB() : startB(); }
+function startB() {
+    isB = true; const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
+    c.classList.add('animating'); let step=0, sec=4;
     const steps=[{t:'Inhale',s:'scale(1.2)'},{t:'Hold',s:'scale(1.2)'},{t:'Exhale',s:'scale(0.8)'},{t:'Hold',s:'scale(0.8)'}];
-    let step=0, sec=4;
-    const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; };
-    update();
-    bT = setInterval(() => { co.innerText = sec; if(sec === 0) { step=(step+1)%4; sec=4; update(); } sec--; }, 1000);
+    bT = setInterval(() => { 
+        co.innerText = sec; if(sec === 0) { step=(step+1)%4; sec=4; l.innerText=steps[step].t; c.style.transform=steps[step].s; } sec--; 
+    }, 1000);
 }
+function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Start'; }
 
-function stopBreathing(){
-    isBreathing = false;
-    clearInterval(bT);
-    const c = document.getElementById('circle');
-    c.classList.remove('animating');
-    c.style.transform='scale(1)';
-    document.getElementById('count').innerText='...';
-    document.getElementById('label').innerText='Tap to Start';
-}
+/* SNAP-TO-SCENE SWIPE LOGIC */
+const container = document.getElementById('screen-container');
+let startTouchX = 0;
+let currentPane = 1; // Start in middle (Dashboard)
+let isDragging = false;
+let startTime = 0;
 
-let startX = 0, currentPane = 1;
-document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
-document.addEventListener('touchend', e => {
-    let diff = e.changedTouches[0].screenX - startX;
-    if (Math.abs(diff) > 60) {
-        if (diff > 0 && currentPane > 0) currentPane--; else if (diff < 0 && currentPane < 2) currentPane++;
-        document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
-        if (currentPane !== 2) stopBreathing();
+window.addEventListener('touchstart', (e) => {
+    startTouchX = e.touches[0].clientX;
+    startTime = Date.now();
+    isDragging = true;
+    container.style.transition = 'none'; // Disable transition for raw dragging
+});
+
+window.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - startTouchX;
+    const offset = (currentPane * -33.333) + (diff / window.innerWidth * 33.333);
+    container.style.transform = `translateX(${offset}%)`;
+});
+
+window.addEventListener('touchend', (e) => {
+    isDragging = false;
+    const endTouchX = e.changedTouches[0].clientX;
+    const diff = endTouchX - startTouchX;
+    const velocity = Math.abs(diff) / (Date.now() - startTime);
+
+    // If swipe is fast (velocity > 0.5) or far (diff > 1/4 screen)
+    if (velocity > 0.5 || Math.abs(diff) > window.innerWidth / 4) {
+        if (diff < 0 && currentPane < 2) currentPane++;
+        else if (diff > 0 && currentPane > 0) currentPane--;
     }
+
+    // Snap to the currentPane
+    container.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+    container.style.transform = `translateX(${currentPane * -33.333}%)`;
+    
+    // Stop breathing if we leave the breathing screen
+    if (currentPane !== 2) stopB();
 });
 
 dp.onchange = render;
