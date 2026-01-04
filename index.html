@@ -107,12 +107,11 @@
         .breath-circle.animating::after { content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } }
 
-        /* Pomodoro Timer Styles */
         .pomo-card { text-align: center; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; width: 100%; max-width: 250px;}
         .pomo-time { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 2px; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
 
         input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
@@ -150,10 +149,8 @@
                 </div>
             </div>
         </div>
-
         <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden"></div></div>
         <div id="habitList" class="card"></div>
-
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:12px">
                 <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Heatmap</span>
@@ -161,12 +158,10 @@
             </div>
             <div id="calendar" class="calendar-grid"></div>
         </div>
-        
         <div class="card">
             <input id="habitInput" placeholder="New habit...">
             <button class="btn-primary" onclick="addHabit()">Plant Habit</button>
         </div>
-
         <div style="display:flex; gap:10px; margin-top:10px">
             <button class="btn-outline" onclick="exportData()">📥 Backup</button>
             <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 Restore</button>
@@ -176,12 +171,10 @@
 
     <div class="view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <h3 style="color: var(--g-pale); margin-bottom: 2rem;">Mindfulness</h3>
-        
         <div class="breath-circle" id="circle" onclick="toggleBreathing()">
             <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Tap to Breathe</span>
             <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
         </div>
-
         <div class="pomo-card">
             <div class="pomo-time" id="pomoDisplay">25:00</div>
             <button id="pomoBtn" onclick="togglePomo()" style="background: var(--accent); color: var(--bg); font-weight: 700;">Start Focus</button>
@@ -192,11 +185,13 @@
 <audio id="naturePlayer" loop></audio>
 
 <script>
+/* HABIT & CAFFEINE LOGIC */
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
-
-/* Caffeine Logic */
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
+const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
+const save = h => localStorage.setItem('habits', JSON.stringify(h));
+
 function addCaffeine(val) {
     const d = dp.value;
     caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
@@ -208,11 +203,6 @@ function updateCaffeineUI() {
     document.getElementById('caffeineCount').innerText = count;
     document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
 }
-
-/* Habit Garden */
-const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
-const save = h => localStorage.setItem('habits', JSON.stringify(h));
-
 function render() {
     const h = load(), d = dp.value;
     const hl = document.getElementById('habitList'), g = document.getElementById('garden');
@@ -227,26 +217,22 @@ function render() {
     updateCaffeineUI();
     renderCalendar();
 }
-
 function calculateStreak(dates, target) {
     let s = 0; let curr = new Date(target + "T12:00:00");
     while(dates.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); }
     return s;
 }
-
 function toggleHabit(idx) {
     const h = load(), d = dp.value;
     const i = h[idx].done.indexOf(d);
     i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d);
     save(h); render();
 }
-
 function addHabit() {
     const i = document.getElementById('habitInput'); if(!i.value.trim()) return;
     const h = load(); h.push({name: i.value.trim(), done: []});
     save(h); i.value = ''; render();
 }
-
 function renderCalendar() {
     const cal = document.getElementById('calendar');
     const h = load(), curr = new Date(dp.value + "T12:00:00");
@@ -261,25 +247,16 @@ function renderCalendar() {
         const ratio = h.length ? (h.filter(x => x.done.includes(dStr)).length / h.length) : 0;
         const dEl = document.createElement('div');
         dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
-        
-        // Heatmap Logic: >50% yellow, >75% dark green
-        if (ratio > 0.75) {
-            dEl.style.background = "var(--g-dark)";
-        } else if (ratio > 0.5) {
-            dEl.style.background = "var(--yellow)";
-            dEl.style.color = "#000";
-        } else if (ratio > 0) {
-            dEl.style.background = "var(--g-pale)";
-            dEl.style.color = "#000";
-        }
-        
+        if (ratio > 0.75) dEl.style.background = "var(--g-dark)";
+        else if (ratio > 0.5) { dEl.style.background = "var(--yellow)"; dEl.style.color = "#000"; }
+        else if (ratio > 0) { dEl.style.background = "var(--g-pale)"; dEl.style.color = "#000"; }
         dEl.innerText = day;
         dEl.onclick = () => { dp.value = dStr; render(); };
         cal.appendChild(dEl);
     }
 }
 
-/* Audio Player */
+/* AUDIO & MINDFULNESS */
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
     player.src = './' + t + '.mp3'; player.play();
@@ -288,7 +265,6 @@ function playTrack(t, el) {
 }
 function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
-/* Breathing Logic */
 let bT, isB = false;
 function toggleBreathing() { isB ? stopB() : startB(); }
 function startB() {
@@ -301,102 +277,59 @@ function startB() {
 }
 function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; }
 
-/* Pomodoro Logic */
 let pomoTime = 1500, pomoInterval = null, isPomoRunning = false;
 function togglePomo() {
     if (isPomoRunning) {
-        clearInterval(pomoInterval);
-        pomoTime = 1500;
+        clearInterval(pomoInterval); pomoTime = 1500;
         document.getElementById('pomoDisplay').innerText = "25:00";
         document.getElementById('pomoBtn').innerText = "Start Focus";
         isPomoRunning = false;
     } else {
-        isPomoRunning = true;
-        document.getElementById('pomoBtn').innerText = "Reset";
+        isPomoRunning = true; document.getElementById('pomoBtn').innerText = "Reset";
         pomoInterval = setInterval(() => {
-            pomoTime--;
-            let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60;
+            pomoTime--; let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60;
             document.getElementById('pomoDisplay').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if (pomoTime <= 0) {
-                clearInterval(pomoInterval);
-                alert("Focus session complete! Time to breathe.");
-                togglePomo();
-            }
+            if (pomoTime <= 0) { clearInterval(pomoInterval); alert("Focus complete!"); togglePomo(); }
         }, 1000);
     }
 }
 
-/* Perfect Centering Snapping Logic */
+/* GESTURES */
 const container = document.getElementById('screen-container');
 let startTouchX = 0, currentPane = 1, isDragging = false, startTime = 0, transformX = -33.333333;
-
 const updateUI = (x) => {
     container.style.transform = `translateX(${x}%)`;
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
 };
-
 window.addEventListener('touchstart', (e) => {
-    startTouchX = e.touches[0].clientX;
-    startTime = Date.now();
-    isDragging = true;
-    container.style.transition = 'none';
+    startTouchX = e.touches[0].clientX; startTime = Date.now(); isDragging = true; container.style.transition = 'none';
 }, { passive: true });
-
 window.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     const diffX = e.touches[0].clientX - startTouchX;
     const movePercent = (diffX / window.innerWidth) * 33.333333;
     transformX = (currentPane * -33.333333) + movePercent;
-    if (transformX > 0) transformX /= 3; 
-    if (transformX < -66.666666) transformX = -66.666666 + (transformX + 66.666666) / 3;
+    if (transformX > 0) transformX /= 3; if (transformX < -66.666666) transformX = -66.666666 + (transformX + 66.666666) / 3;
     requestAnimationFrame(() => updateUI(transformX));
 }, { passive: true });
-
 window.addEventListener('touchend', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
+    if (!isDragging) return; isDragging = false;
     const diffX = e.changedTouches[0].clientX - startTouchX;
     const velocity = Math.abs(diffX) / (Date.now() - startTime);
     if (Math.abs(diffX) > window.innerWidth * 0.15 || velocity > 0.3) {
-        if (diffX < 0 && currentPane < 2) currentPane++;
-        else if (diffX > 0 && currentPane > 0) currentPane--;
+        if (diffX < 0 && currentPane < 2) currentPane++; else if (diffX > 0 && currentPane > 0) currentPane--;
     }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-    transformX = currentPane * -33.333333;
-    updateUI(transformX);
-    if (currentPane !== 2) stopB();
+    transformX = currentPane * -33.333333; updateUI(transformX);
+    if (currentPane !== 2) { stopB(); if(isPomoRunning) togglePomo(); }
 });
 
-function exportData() {
-    const h = load();
-    let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name}",${date},DONE\n`));
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = `MindGarden_Backup.csv`; a.click();
+/* SERVICE WORKER */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Registered"));
 }
 
-function importData(e) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const lines = event.target.result.split('\n').slice(1);
-        const h = [];
-        lines.forEach(line => {
-            const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if (parts.length < 3) return;
-            const type = parts[0].trim(), name = parts[1].replace(/"/g,''), date = parts[2].trim();
-            if (type === 'Habit') {
-                let habit = h.find(x => x.name === name);
-                if (!habit) { habit = {name, done:[]}; h.push(habit); }
-                habit.done.push(date);
-            }
-        });
-        if (h.length) save(h);
-        render(); alert("Imported");
-    };
-    reader.readAsText(e.target.files[0]);
-}
-
+dp.onchange = render;
 render();
 </script>
 </body>
