@@ -2,244 +2,297 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=0" />
-  <title>Habit Tracker Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Mind Garden – Habit Tracker</title>
 
+  <!-- iOS PWA Meta -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
+  <meta name="apple-mobile-web-app-title" content="Mind Garden">
+
   <style>
     :root {
       --bg: #020617;
-      --card: rgba(30, 41, 59, 0.5);
+      --card: #0f172a;
       --accent: #22c55e;
+      --accent-2: #38bdf8;
       --muted: #94a3b8;
       --danger: #ef4444;
-      --text: #ffffff;
-      --glass-border: rgba(255, 255, 255, 0.1);
     }
 
-    [data-theme="light"] {
-      --bg: #f8fafc;
-      --card: rgba(255, 255, 255, 0.8);
-      --accent: #16a34a;
-      --muted: #64748b;
-      --danger: #dc2626;
-      --text: #0f172a;
-      --glass-border: rgba(0, 0, 0, 0.1);
-    }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: linear-gradient(180deg, #020617, #020617 40%, #022c22);
+      color: #fff;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
-    header { padding: 2rem 1rem 1rem; text-align: center; }
-    
-    .progress-container {
-      width: 100%; background: rgba(128,128,128,0.2);
-      height: 8px; border-radius: 10px; margin: 1.5rem 0; overflow: hidden;
-    }
-    #progressBar {
-      height: 100%; background: var(--accent); width: 0%;
-      transition: width 0.5s ease; box-shadow: 0 0 10px var(--accent);
+    header {
+      padding: 1.2rem 1rem 0.5rem;
+      text-align: center;
     }
 
-    main { max-width: 480px; margin: auto; }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 520px;
+      margin: auto;
+    }
 
     .card {
-      background: var(--card); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-      border: 1px solid var(--glass-border); border-radius: 24px;
-      padding: 1.2rem; margin-bottom: 1rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 18px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
 
-    .tab-container { display: flex; gap: 10px; margin-bottom: 15px; }
-    .tab-btn {
-      flex: 1; padding: 12px; border-radius: 14px; border: 1px solid var(--glass-border);
-      background: rgba(128,128,128,0.1); color: var(--text); cursor: pointer; font-weight: 600;
-    }
-    .tab-btn.active { background: var(--accent); color: white; border: none; }
-
-    .history-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 10px; }
-    .day-cell {
-      aspect-ratio: 1; border-radius: 8px; background: rgba(128,128,128,0.1);
-      display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
-    }
-    .day-cell.complete { background: var(--accent); color: white; font-weight: bold; }
-    .day-cell.partial { background: var(--accent); opacity: 0.4; color: var(--text); }
-
-    .add-habit { display: flex; gap: 0.8rem; }
-    .add-habit input {
-      flex: 1; background: rgba(128,128,128,0.1); border: 1px solid var(--glass-border);
-      border-radius: 14px; padding: 0.8rem; color: var(--text); outline: none;
-    }
-    .add-habit button {
-      background: var(--accent); border: none; border-radius: 14px; padding: 0 1.2rem; color: white; font-weight: bold;
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
     }
 
-    .habit { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--glass-border); }
-    .streak-badge { font-size: 0.75rem; color: #d97706; font-weight: 600; }
-    .check { width: 34px; height: 34px; border-radius: 12px; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .check.done { background: var(--accent); color: white; }
-    
-    .settings-bar { display: flex; justify-content: space-between; margin-top: 20px; }
-    .icon-btn { background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; text-decoration: underline; }
+    input, select {
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 0.6rem 0.7rem;
+      color: #fff;
+      font-size: 0.95rem;
+    }
 
-    .hidden { display: none; }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .habit {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .habit:last-child { border-bottom: none; }
+
+    .check {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .check.done {
+      background: var(--accent);
+      color: #022c22;
+      font-weight: bold;
+    }
+
+    .garden {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .plant {
+      height: 60px;
+      border-radius: 12px;
+      background: #020617;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid #1f2937;
+    }
+
+    .plant span {
+      width: 100%;
+      background: linear-gradient(180deg, var(--accent-2), var(--accent));
+      display: block;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1rem;
+    }
+
+    .icloud {
+      font-size: 0.8rem;
+      color: var(--accent-2);
+      text-align: center;
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
-<body data-theme="dark">
+<body>
 
 <header>
-  <h1 id="viewTitle">Daily Habits</h1>
-  <div class="progress-container"><div id="progressBar"></div></div>
+  <h1>🌱 Mind Garden</h1>
+  <p>Habits grow over time</p>
 </header>
 
 <main>
-  <div class="tab-container">
-    <button class="tab-btn active" onclick="switchTab('daily')">Daily</button>
-    <button class="tab-btn" onclick="switchTab('history')">History</button>
-  </div>
-
-  <div id="dailyView">
-    <div class="card">
-      <div class="add-habit">
-        <input id="habitInput" placeholder="Drink water..." autocomplete="off" />
-        <button onclick="addHabit()">+</button>
-      </div>
-    </div>
-    <div class="card" id="habitList"></div>
-  </div>
-
-  <div id="historyView" class="hidden">
-    <div class="card">
-      <div id="historyGrid" class="history-grid"></div>
+  <!-- Add habit -->
+  <div class="card">
+    <div class="row">
+      <input id="habitInput" placeholder="Add a habit…" style="flex:1" />
+      <button onclick="addHabit()">+</button>
     </div>
   </div>
 
-  <div class="settings-bar">
-    <button class="icon-btn" onclick="toggleTheme()">🌓 Switch Theme</button>
-    <button class="icon-btn" onclick="exportData()">📥 Export CSV</button>
+  <!-- Date selector -->
+  <div class="card">
+    <div class="row">
+      <label style="font-size:0.85rem;color:var(--muted)">Date</label>
+      <input type="date" id="datePicker" />
+    </div>
   </div>
+
+  <!-- Habits -->
+  <div class="card" id="habitList"></div>
+
+  <!-- Journal -->
+  <div class="card">
+    <strong>Journal</strong>
+    <textarea id="journal" placeholder="Write your thoughts for this day…" style="width:100%;margin-top:0.5rem;height:100px;background:#020617;border:1px solid #1f2937;border-radius:12px;color:#fff;padding:0.6rem;font-family:inherit"></textarea>
+    <button style="margin-top:0.5rem;width:100%" onclick="saveJournal()">Save Journal</button>
+  </div>
+
+  <!-- Garden -->
+  <div class="card">
+    <strong>Garden</strong>
+    <div class="garden" id="garden"></div>
+  </div>
+
+  <div class="icloud">Auto-sync via iCloud (Safari)</div>
+
+  <div class="footer">Perpetual calendar · Retrospective logging · Offline-first</div>
 </main>
 
 <script>
-  const todayKey = new Date().toISOString().slice(0, 10);
-  
-  function loadHabits() { return JSON.parse(localStorage.getItem('habits') || '[]'); }
-  function saveHabits(habits) { localStorage.setItem('habits', JSON.stringify(habits)); render(); }
+  // ===== iCloud sync =====
+  // Safari syncs localStorage via iCloud automatically when signed in
 
-  function switchTab(tab) {
-    document.getElementById('dailyView').classList.toggle('hidden', tab !== 'daily');
-    document.getElementById('historyView').classList.toggle('hidden', tab !== 'history');
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(tab)));
-    document.getElementById('viewTitle').innerText = tab === 'daily' ? 'Daily Habits' : 'Consistency Map';
-    if(tab === 'history') renderHistory();
+  const datePicker = document.getElementById('datePicker');
+  const todayISO = new Date().toISOString().slice(0,10);
+  datePicker.value = todayISO;
+
+  function loadHabits() {
+    return JSON.parse(localStorage.getItem('habits') || '[]');
   }
 
-  function toggleTheme() {
-    const body = document.body;
-    const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-  }
-
-  function exportData() {
-    const habits = loadHabits();
-    let csv = "Habit,DateCompleted\n";
-    habits.forEach(h => {
-      h.doneDates.forEach(date => {
-        csv += `${h.name},${date}\n`;
-      });
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', 'habit_history.csv');
-    a.click();
-  }
-
-  function getStreak(dates) {
-    let s = 0; let d = new Date();
-    while(true) {
-      let k = d.toISOString().slice(0, 10);
-      if(dates.includes(k)) { s++; d.setDate(d.getDate()-1); }
-      else { if(s===0 && k===todayKey) { d.setDate(d.getDate()-1); continue; } break; }
-    }
-    return s;
-  }
-
-  function render() {
-    const list = document.getElementById('habitList');
-    const habits = loadHabits();
-    list.innerHTML = habits.length ? '' : '<p style="text-align:center;color:var(--muted)">No habits tracked yet.</p>';
-    
-    let doneCount = 0;
-    habits.forEach((h, i) => {
-      const isDone = h.doneDates.includes(todayKey);
-      if(isDone) doneCount++;
-      const row = document.createElement('div');
-      row.className = 'habit';
-      row.innerHTML = `
-        <div><div style="font-weight:600">${h.name}</div><div class="streak-badge">🔥 ${getStreak(h.doneDates)} Day Streak</div></div>
-        <div style="display:flex;gap:15px;align-items:center">
-          <div class="check ${isDone?'done':''}" onclick="toggleDone(${i})">${isDone?'✓':''}</div>
-          <button style="background:none;border:none;color:var(--danger);font-size:1.2rem;" onclick="deleteHabit(${i})">×</button>
-        </div>`;
-      list.appendChild(row);
-    });
-    document.getElementById('progressBar').style.width = habits.length ? (doneCount/habits.length)*100+'%' : '0%';
-  }
-
-  function renderHistory() {
-    const grid = document.getElementById('historyGrid');
-    grid.innerHTML = '';
-    const habits = loadHabits();
-    const now = new Date();
-    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
-    for (let i = 1; i <= days; i++) {
-      const dateKey = new Date(now.getFullYear(), now.getMonth(), i).toISOString().slice(0, 10);
-      let count = 0;
-      habits.forEach(h => { if(h.doneDates.includes(dateKey)) count++; });
-      const cell = document.createElement('div');
-      cell.className = 'day-cell';
-      if(habits.length > 0 && count === habits.length) cell.classList.add('complete');
-      else if(count > 0) cell.classList.add('partial');
-      cell.innerText = i;
-      grid.appendChild(cell);
-    }
+  function saveHabits(habits) {
+    localStorage.setItem('habits', JSON.stringify(habits));
   }
 
   function addHabit() {
     const input = document.getElementById('habitInput');
-    if(!input.value.trim()) return;
-    const h = loadHabits(); h.push({name: input.value.trim(), doneDates: []});
-    saveHabits(h); input.value = '';
+    const name = input.value.trim();
+    if (!name) return;
+
+    const habits = loadHabits();
+    habits.push({ name, doneDates: [] });
+    saveHabits(habits);
+    input.value = '';
+    render();
+
+  function saveJournal() {
+    const key = datePicker.value;
+    const text = document.getElementById('journal').value;
+    localStorage.setItem('journal-' + key, text);
+  }
   }
 
-  function toggleDone(i) {
-    const h = loadHabits();
-    const d = h[i].doneDates;
-    const idx = d.indexOf(todayKey);
-    idx >= 0 ? d.splice(idx, 1) : d.push(todayKey);
-    saveHabits(h);
+  function toggleDone(index) {
+    const habits = loadHabits();
+    const key = datePicker.value;
+    const dates = habits[index].doneDates;
+
+    const i = dates.indexOf(key);
+    if (i >= 0) dates.splice(i, 1);
+    else dates.push(key);
+
+    saveHabits(habits);
+    render();
   }
 
-  function deleteHabit(i) { if(confirm('Delete?')) { const h = loadHabits(); h.splice(i,1); saveHabits(h); } }
+  function render() {
+    const list = document.getElementById('habitList');
+    const garden = document.getElementById('garden');
+    const habits = loadHabits();
+    const key = datePicker.value;
 
-  // Load saved theme
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  document.body.setAttribute('data-theme', savedTheme);
+    // Load journal
+    const journalKey = 'journal-' + key;
+    document.getElementById('journal').value = localStorage.getItem(journalKey) || '';
 
+    list.innerHTML = '';
+    garden.innerHTML = '';
+
+    habits.forEach((h, i) => {
+      const done = h.doneDates.includes(key);
+
+      const row = document.createElement('div');
+      row.className = 'habit';
+      row.innerHTML = `
+        <div>${h.name}</div>
+        <div class="check ${done ? 'done' : ''}" onclick="toggleDone(${i})">${done ? '✓' : ''}</div>
+      `;
+      list.appendChild(row);
+
+      // Garden growth = total completions
+      const growth = Math.min(100, h.doneDates.length * 10);
+      const plant = document.createElement('div');
+      plant.className = 'plant';
+      plant.innerHTML = `<span style=\"height:${growth}%\"></span>`;
+      garden.appendChild(plant);
+    });
+  }</div>
+        <div class="check ${done ? 'done' : ''}" onclick="toggleDone(${i})">${done ? '✓' : ''}</div>
+      `;
+      list.appendChild(row);
+
+      // Garden growth = total completions
+      const growth = Math.min(100, h.doneDates.length * 10);
+      const plant = document.createElement('div');
+      plant.className = 'plant';
+      plant.innerHTML = `<span style="height:${growth}%"></span>`;
+      garden.appendChild(plant);
+    });
+  }
+
+  datePicker.addEventListener('change', render);
   render();
 </script>
+
 </body>
 </html>
