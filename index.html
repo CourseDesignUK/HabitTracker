@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -15,53 +15,56 @@
         body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; overflow: hidden; overscroll-behavior: none; }
 
         #screen-container { display: flex; width: 300%; height: 100vh; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); transform: translateX(-33.33%); }
-        .view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1.5rem; padding-top: env(safe-area-inset-top); position: relative; }
+        .view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1.2rem; padding-top: env(safe-area-inset-top); position: relative; }
 
-        /* Calendar Heatmap Styles */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
-        .cal-day { aspect-ratio: 1; border-radius: 4px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; border: 1px solid transparent; }
-        .cal-day.active { border-color: var(--accent); color: #fff; }
-        .cal-day.filled { background: var(--g3); color: #020617; font-weight: bold; }
-        .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 4px; }
+        /* Heatmap Styles */
+        .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 5px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-day { aspect-ratio: 1; border-radius: 3px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; }
+        .cal-day.filled { color: #020617; font-weight: bold; }
 
-        /* Layout & UI */
+        /* UI Components */
         .track-card { background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
         .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); }
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
         .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .check.done { background: var(--g3); color: #020617; }
-        .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 12px; }
-        .plant { height: 60px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.6s ease-out; }
-        @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
+        .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
+        .plant { height: 55px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.5s ease; }
         
+        /* Breathing */
+        #breath-view { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .breath-circle { width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
+        
         input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 70px;}
-        .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; flex: 1; }
+        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 70px; }
+        @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div id="screen-container">
     <div class="view" id="media-view">
-        <h2 style="color: var(--accent)">Sounds</h2>
+        <h2 style="color: var(--accent)">Soundscapes</h2>
         <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div>
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div>
-        <button onclick="stopAudio()" style="width:100%; background:var(--red); border:none; margin-top:20px">Silence</button>
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><strong>Rainforest</strong></div>
+        <button onclick="stopAudio()" style="width:100%; background:var(--red); border:none; margin-top:20px; font-weight:bold">Mute</button>
     </div>
 
     <div class="view">
-        <div class="card">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <strong id="monthLabel">Calendar</strong>
-                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size: 0.8rem; color: var(--accent); width: auto;">
+        <div class="card" style="padding: 0.8rem; background: #1e293b;">
+            <div style="display:flex; justify-content: space-between; align-items:center;">
+                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Calendar</span>
+                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size:0.8rem; color:var(--accent); width:auto;">
             </div>
-            <div class="cal-header"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+            <div class="cal-header" style="margin-top:10px"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
             <div id="calendar" class="calendar-grid"></div>
         </div>
 
-        <div class="card"><div id="garden" class="garden"></div></div>
+        <div class="card"><strong>Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
         
         <div id="habitList" class="card"></div>
         
@@ -72,105 +75,124 @@
 
         <div class="card">
             <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;"></textarea>
+            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="Thoughts..."></textarea>
             <button style="width:100%" onclick="saveJournal()">Save Entry</button>
         </div>
     </div>
 
     <div class="view" id="breath-view">
         <div class="breath-circle" id="circle">
-            <span id="label">Focus</span>
-            <div style="font-size:3rem" id="count">...</div>
+            <span id="label" style="text-transform:uppercase; letter-spacing:1px; color:var(--g3)">Prepare</span>
+            <div style="font-size:3.5rem; font-weight:800" id="count">...</div>
         </div>
+        <p style="margin-top:2rem; color:var(--muted); text-align:center">Inhale • Hold • Exhale • Hold</p>
     </div>
 </div>
 
 <audio id="naturePlayer" loop></audio>
 
 <script>
-// --- CORE DATA ---
+// --- AUDIO ENGINE ---
+const player = document.getElementById('naturePlayer');
+const tracks = { storm: 'Storm.mp3', waves: 'Waves.mp3', forest: 'Rainforest.mp3' };
+function playTrack(t, el) { 
+    player.src = tracks[t]; 
+    player.play(); 
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+}
+function stopAudio() { 
+    player.pause(); 
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+}
+
+// --- BREATH ENGINE ---
+let bT;
+function startBreathing() {
+    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
+    const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
+    let step=0, sec=4;
+    const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; };
+    update();
+    bT = setInterval(() => {
+        co.innerText = sec;
+        if(sec === 0) {
+            step=(step+1)%4; sec=4; update();
+        }
+        sec--;
+    }, 1000);
+}
+function stopBreathing(){ clearInterval(bT); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; }
+
+// --- DATA & GARDEN ---
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-// --- CALENDAR TRACKER LOGIC ---
-function renderCalendar() {
-    const cal = document.getElementById('calendar');
-    const h = load();
-    const now = new Date(dp.value);
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    
-    document.getElementById('monthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-    cal.innerHTML = '';
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    // Fill empty start slots
-    for (let i = 0; i < firstDay; i++) cal.innerHTML += '<div></div>';
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const isToday = dateStr === dp.value;
-        
-        // Count completions for this day
-        const completions = h.reduce((acc, hab) => acc + (hab.done.includes(dateStr) ? 1 : 0), 0);
-        const intensity = completions > 0 ? (completions / h.length) : 0;
-        
-        const dayEl = document.createElement('div');
-        dayEl.className = `cal-day ${isToday ? 'active' : ''}`;
-        if(intensity > 0) {
-            dayEl.classList.add('filled');
-            dayEl.style.opacity = 0.4 + (intensity * 0.6);
-        }
-        dayEl.innerText = day;
-        dayEl.onclick = () => { dp.value = dateStr; render(); };
-        cal.appendChild(dayEl);
-    }
-}
-
-// --- HABIT STREAKS & GARDEN ---
 function calculateStreak(dates) {
     let streak = 0;
-    let d = new Date(); d.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
     const sorted = [...new Set(dates)].sort().reverse();
     if(!sorted.length) return 0;
-    
     let latest = new Date(sorted[0]); latest.setHours(0,0,0,0);
-    if ((d - latest) / 86400000 > 1) return 0;
-
+    if ((today - latest) / 86400000 > 1) return 0;
     for (let s of sorted) {
         let sd = new Date(s); sd.setHours(0,0,0,0);
-        if ((d - sd) / 86400000 <= streak) streak++;
-        else break;
+        if ((today - sd) / 86400000 <= streak) streak++; else break;
     }
     return streak;
 }
 
-function render() {
+function renderCalendar() {
+    const cal = document.getElementById('calendar');
     const h = load();
-    const d = dp.value;
+    const curr = new Date(dp.value);
+    const month = curr.getMonth(), year = curr.getFullYear();
+    
+    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
+    cal.innerHTML = '';
+    
+    const first = new Date(year, month, 1).getDay();
+    const total = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
+
+    for (let day = 1; day <= total; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const count = h.reduce((acc, hab) => acc + (hab.done.includes(dateStr) ? 1 : 0), 0);
+        const intensity = h.length ? count / h.length : 0;
+        
+        const dEl = document.createElement('div');
+        dEl.className = `cal-day ${dateStr === dp.value ? 'active' : ''}`;
+        if(intensity > 0) {
+            dEl.classList.add('filled');
+            dEl.style.background = `rgba(34, 197, 94, ${0.2 + (intensity * 0.8)})`;
+        }
+        dEl.innerText = day;
+        dEl.onclick = () => { dp.value = dateStr; render(); };
+        cal.appendChild(dEl);
+    }
+}
+
+function render() {
+    const h = load(), d = dp.value;
     const hl = document.getElementById('habitList');
     const g = document.getElementById('garden');
-    
     document.getElementById('journal').value = localStorage.getItem('j-'+d) || '';
     hl.innerHTML = ''; g.innerHTML = '';
 
     h.forEach((x, i) => {
-        const streak = calculateStreak(x.done);
-        // Habit List
+        const s = calculateStreak(x.done);
         const row = document.createElement('div');
         row.className = 'habit';
-        row.innerHTML = `<div><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${streak}d</small></div>
+        row.innerHTML = `<div><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s}d</small></div>
             <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
         hl.appendChild(row);
 
-        // Garden
         const p = document.createElement('div');
         p.className = 'plant';
-        p.innerHTML = streak >= 7 ? '🌻' : streak >= 3 ? '🌿' : streak >= 1 ? '🌱' : '🕳️';
+        p.innerHTML = s >= 7 ? '🌻' : s >= 3 ? '🌿' : s >= 1 ? '🌱' : '🕳️';
         g.appendChild(p);
     });
     renderCalendar();
@@ -184,23 +206,14 @@ function toggle(idx) {
 }
 
 function addHabit() {
-    const i = document.getElementById('habitInput');
-    if(!i.value) return;
+    const i = document.getElementById('habitInput'); if(!i.value) return;
     const h = load(); h.push({name: i.value, done: []});
     save(h); i.value = ''; render();
 }
 
-function saveJournal() {
-    localStorage.setItem('j-'+dp.value, document.getElementById('journal').value);
-    alert("Saved");
-}
+function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Saved"); }
 
-// --- AUDIO & BREATH (STUBS) ---
-const player = document.getElementById('naturePlayer');
-function playTrack(t, el) { player.src = t+'.mp3'; player.play(); }
-function stopAudio() { player.pause(); }
-
-// --- NAV ---
+// --- NAVIGATION ---
 let startX = 0, currentPane = 1;
 document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
 document.addEventListener('touchend', e => {
@@ -209,6 +222,7 @@ document.addEventListener('touchend', e => {
         if (diff > 0 && currentPane > 0) currentPane--;
         else if (diff < 0 && currentPane < 2) currentPane++;
         document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
+        if (currentPane === 2) startBreathing(); else stopBreathing();
     }
 });
 
