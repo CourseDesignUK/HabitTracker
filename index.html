@@ -1,298 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Mind Garden – Habit Tracker</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Mind Garden – Habits & Journal</title>
 
-  <!-- iOS PWA Meta -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Mind Garden">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mind Garden">
 
-  <style>
-    :root {
-      --bg: #020617;
-      --card: #0f172a;
-      --accent: #22c55e;
-      --accent-2: #38bdf8;
-      --muted: #94a3b8;
-      --danger: #ef4444;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      background: linear-gradient(180deg, #020617, #020617 40%, #022c22);
-      color: #fff;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right)
-               env(safe-area-inset-bottom) env(safe-area-inset-left);
-    }
-
-    header {
-      padding: 1.2rem 1rem 0.5rem;
-      text-align: center;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.4rem;
-      font-weight: 600;
-    }
-
-    header p {
-      margin: 0.25rem 0 0;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-
-    main {
-      padding: 1rem;
-      max-width: 520px;
-      margin: auto;
-    }
-
-    .card {
-      background: rgba(15, 23, 42, 0.9);
-      border-radius: 18px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    }
-
-    .row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    input, select {
-      background: #020617;
-      border: 1px solid #1f2937;
-      border-radius: 12px;
-      padding: 0.6rem 0.7rem;
-      color: #fff;
-      font-size: 0.95rem;
-    }
-
-    button {
-      background: var(--accent);
-      border: none;
-      border-radius: 12px;
-      padding: 0.6rem 0.9rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    .habit {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid #1f2937;
-    }
-
-    .habit:last-child { border-bottom: none; }
-
-    .check {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    .check.done {
-      background: var(--accent);
-      color: #022c22;
-      font-weight: bold;
-    }
-
-    .garden {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .plant {
-      height: 60px;
-      border-radius: 12px;
-      background: #020617;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      overflow: hidden;
-      border: 1px solid #1f2937;
-    }
-
-    .plant span {
-      width: 100%;
-      background: linear-gradient(180deg, var(--accent-2), var(--accent));
-      display: block;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 1rem;
-    }
-
-    .icloud {
-      font-size: 0.8rem;
-      color: var(--accent-2);
-      text-align: center;
-      margin-top: 0.5rem;
-    }
-  </style>
+<style>
+:root{
+  --bg:#020617;--card:#0f172a;--muted:#94a3b8;
+  --g1:#dcfce7;--g2:#86efac;--g3:#22c55e;--g4:#15803d;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,system-ui;background:linear-gradient(180deg,#020617,#022c22);color:#fff;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{text-align:center;padding:1rem}
+main{max-width:560px;margin:auto;padding:1rem}
+.card{background:rgba(15,23,42,.9);border-radius:18px;padding:1rem;margin-bottom:1rem}
+.row{display:flex;gap:.5rem;align-items:center}
+input,textarea,button{background:#020617;border:1px solid #1f2937;border-radius:12px;color:#fff;padding:.6rem;font-family:inherit}
+button{cursor:pointer}
+.habit{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1f2937;padding:.4rem 0}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid #22c55e;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.check.done{background:#22c55e;color:#022c22;font-weight:bold}
+.heat{width:16px;height:16px;border-radius:4px;cursor:pointer}
+.garden{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:.5rem}
+.plant{height:60px;border-radius:12px;background:#020617;border:1px solid #1f2937;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.plant span{width:100%;display:block;background:linear-gradient(180deg,#86efac,#22c55e)}
+.flower{font-size:1.4rem;line-height:1}
+.small{font-size:.75rem;color:var(--muted)}
+table{border-collapse:collapse;font-size:.7rem}
+th,td{text-align:center;padding:2px}
+th:first-child,td:first-child{text-align:left;padding-right:6px}
+.year{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.year div{font-size:.65rem}
+</style>
 </head>
 <body>
-
 <header>
-  <h1>🌱 Mind Garden</h1>
-  <p>Habits grow over time</p>
+<h1>🌱 Mind Garden</h1>
+<div class="small">Habits · Journal · Growth</div>
 </header>
-
 <main>
-  <!-- Add habit -->
-  <div class="card">
-    <div class="row">
-      <input id="habitInput" placeholder="Add a habit…" style="flex:1" />
-      <button onclick="addHabit()">+</button>
-    </div>
-  </div>
 
-  <!-- Date selector -->
-  <div class="card">
-    <div class="row">
-      <label style="font-size:0.85rem;color:var(--muted)">Date</label>
-      <input type="date" id="datePicker" />
-    </div>
-  </div>
+<div class="card row">
+<input id="habitInput" placeholder="Add habit" style="flex:1">
+<button onclick="addHabit()">+</button>
+<input type="date" id="datePicker">
+</div>
 
-  <!-- Habits -->
-  <div class="card" id="habitList"></div>
+<div class="card" id="habitList"></div>
 
-  <!-- Journal -->
-  <div class="card">
-    <strong>Journal</strong>
-    <textarea id="journal" placeholder="Write your thoughts for this day…" style="width:100%;margin-top:0.5rem;height:100px;background:#020617;border:1px solid #1f2937;border-radius:12px;color:#fff;padding:0.6rem;font-family:inherit"></textarea>
-    <button style="margin-top:0.5rem;width:100%" onclick="saveJournal()">Save Journal</button>
-  </div>
+<div class="card">
+<strong>Journal</strong>
+<textarea id="journal" style="width:100%;height:90px;margin-top:.5rem" placeholder="Thoughts for this day…"></textarea>
+<button style="width:100%;margin-top:.5rem" onclick="saveJournal()">Save</button>
+</div>
 
-  <!-- Garden -->
-  <div class="card">
-    <strong>Garden</strong>
-    <div class="garden" id="garden"></div>
-  </div>
+<div class="card">
+<strong>Monthly Heatmap</strong>
+<div id="monthLabel" class="small"></div>
+<div id="monthly"></div>
+</div>
 
-  <div class="icloud">Auto-sync via iCloud (Safari)</div>
+<div class="card">
+<strong>Year View</strong>
+<div id="year" class="year"></div>
+</div>
 
-  <div class="footer">Perpetual calendar · Retrospective logging · Offline-first</div>
+<div class="card">
+<strong>Garden</strong>
+<div id="garden" class="garden"></div>
+</div>
+
 </main>
 
 <script>
-  // ===== iCloud sync =====
-  // Safari syncs localStorage via iCloud automatically when signed in
+const dp=document.getElementById('datePicker');
+dp.value=new Date().toISOString().slice(0,10);
 
-  const datePicker = document.getElementById('datePicker');
-  const todayISO = new Date().toISOString().slice(0,10);
-  datePicker.value = todayISO;
+const heatColor=p=>p===0?'#020617':p<.25?'var(--g1)':p<.5?'var(--g2)':p<.75?'var(--g3)':'var(--g4)';
 
-  function loadHabits() {
-    return JSON.parse(localStorage.getItem('habits') || '[]');
-  }
+const load=()=>JSON.parse(localStorage.getItem('habits')||'[]');
+const save=h=>localStorage.setItem('habits',JSON.stringify(h));
 
-  function saveHabits(habits) {
-    localStorage.setItem('habits', JSON.stringify(habits));
-  }
+function addHabit(){const i=document.getElementById('habitInput');if(!i.value.trim())return;const h=load();h.push({name:i.value,done:[]});save(h);i.value='';render();}
 
-  function addHabit() {
-    const input = document.getElementById('habitInput');
-    const name = input.value.trim();
-    if (!name) return;
+function toggle(i){const h=load();const d=dp.value;const a=h[i].done;const x=a.indexOf(d);x>=0?a.splice(x,1):a.push(d);save(h);render();}
 
-    const habits = loadHabits();
-    habits.push({ name, doneDates: [] });
-    saveHabits(habits);
-    input.value = '';
-    render();
+function render(){
+const h=load();const d=dp.value;
+const hl=document.getElementById('habitList');hl.innerHTML='';
+const jKey='j-'+d;document.getElementById('journal').value=localStorage.getItem(jKey)||'';
 
-  function saveJournal() {
-    const key = datePicker.value;
-    const text = document.getElementById('journal').value;
-    localStorage.setItem('journal-' + key, text);
-  }
-  }
+h.forEach((x,i)=>{
+const row=document.createElement('div');row.className='habit';
+row.innerHTML=`<div>${x.name}</div><div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
+hl.appendChild(row);
+});
+renderMonth();renderGarden();renderYear();}
 
-  function toggleDone(index) {
-    const habits = loadHabits();
-    const key = datePicker.value;
-    const dates = habits[index].doneDates;
+function saveJournal(){localStorage.setItem('j-'+dp.value,document.getElementById('journal').value)}
 
-    const i = dates.indexOf(key);
-    if (i >= 0) dates.splice(i, 1);
-    else dates.push(key);
+function renderMonth(){
+const h=load();const c=document.getElementById('monthly');const l=document.getElementById('monthLabel');
+const sel=new Date(dp.value);const y=sel.getFullYear(),m=sel.getMonth();
+l.textContent=sel.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+const days=new Date(y,m+1,0).getDate();
+let t='<table><tr><th>Habit</th>';
+for(let d=1;d<=days;d++)t+=`<th>${d}</th>`;t+='</tr>';
 
-    saveHabits(habits);
-    render();
-  }
+h.forEach(x=>{
+let count=0;t+=`<tr><td>${x.name}</td>`;
+for(let d=1;d<=days;d++){
+const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const done=x.done.includes(k);if(done)count++;
+const pct=count/days;
+t+=`<td><div class="heat" onclick="jump('${k}')" style="background:${heatColor(done?1:0)}"></div></td>`;
+}
+t+=`<td class="small">${Math.round((count/days)*100)}%</td></tr>`;
+});
+c.innerHTML=t+'</table>';
+}
 
-  function render() {
-    const list = document.getElementById('habitList');
-    const garden = document.getElementById('garden');
-    const habits = loadHabits();
-    const key = datePicker.value;
+function jump(k){dp.value=k;render();}
 
-    // Load journal
-    const journalKey = 'journal-' + key;
-    document.getElementById('journal').value = localStorage.getItem(journalKey) || '';
+function renderGarden(){
+const g=document.getElementById('garden');g.innerHTML='';
+load().forEach(x=>{
+const p=Math.min(1,x.done.length/30);
+const div=document.createElement('div');div.className='plant';
+if(p>.7)div.innerHTML='<div class="flower">🌸</div>';
+else div.innerHTML=`<span style="height:${p*100}%"></span>`;
+g.appendChild(div);
+});}
 
-    list.innerHTML = '';
-    garden.innerHTML = '';
+function renderYear(){
+const y=document.getElementById('year');y.innerHTML='';
+const h=load();const year=new Date(dp.value).getFullYear();
+for(let m=0;m<12;m++){
+let total=0,done=0;const days=new Date(year,m+1,0).getDate();
+h.forEach(x=>{
+for(let d=1;d<=days;d++){
+total++;const k=`${year}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+if(x.done.includes(k))done++;}
+});
+const div=document.createElement('div');
+div.style.background=heatColor(done/total);
+div.textContent=new Date(year,m,1).toLocaleString(undefined,{month:'short'});
+y.appendChild(div);
+}}
 
-    habits.forEach((h, i) => {
-      const done = h.doneDates.includes(key);
-
-      const row = document.createElement('div');
-      row.className = 'habit';
-      row.innerHTML = `
-        <div>${h.name}</div>
-        <div class="check ${done ? 'done' : ''}" onclick="toggleDone(${i})">${done ? '✓' : ''}</div>
-      `;
-      list.appendChild(row);
-
-      // Garden growth = total completions
-      const growth = Math.min(100, h.doneDates.length * 10);
-      const plant = document.createElement('div');
-      plant.className = 'plant';
-      plant.innerHTML = `<span style=\"height:${growth}%\"></span>`;
-      garden.appendChild(plant);
-    });
-  }</div>
-        <div class="check ${done ? 'done' : ''}" onclick="toggleDone(${i})">${done ? '✓' : ''}</div>
-      `;
-      list.appendChild(row);
-
-      // Garden growth = total completions
-      const growth = Math.min(100, h.doneDates.length * 10);
-      const plant = document.createElement('div');
-      plant.className = 'plant';
-      plant.innerHTML = `<span style="height:${growth}%"></span>`;
-      garden.appendChild(plant);
-    });
-  }
-
-  datePicker.addEventListener('change', render);
-  render();
+dp.onchange=render;render();
 </script>
-
 </body>
 </html>
