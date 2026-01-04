@@ -1,89 +1,43 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Mind Garden</title>
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Mind Garden">
-    
     <style>
         :root {
-            --bg: #020617;
-            --card: #0f172a;
-            --muted: #94a3b8;
-            --g3: #22c55e;
-            --red: #ef4444;
-            --accent: #38bdf8;
-            --border: #1e293b;
+            --bg: #020617; --card: #0f172a; --muted: #94a3b8;
+            --g3: #22c55e; --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            margin: 0; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            background: var(--bg); 
-            color: #fff; 
-            overflow: hidden; 
-            overscroll-behavior: none;
-        }
+        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; overflow: hidden; overscroll-behavior: none; }
 
-        /* Three-Pane Wrapper */
-        #screen-container {
-            display: flex;
-            width: 300%;
-            height: 100vh;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: translateX(-33.33%);
-        }
+        #screen-container { display: flex; width: 300%; height: 100vh; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); transform: translateX(-33.33%); }
+        .view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1.5rem; padding-top: env(safe-area-inset-top); position: relative; }
 
-        .view { 
-            width: 33.33%; 
-            height: 100vh; 
-            overflow-y: auto; 
-            padding: 1.5rem; 
-            padding-top: env(safe-area-inset-top);
-            position: relative; 
-        }
+        /* Calendar Heatmap Styles */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+        .cal-day { aspect-ratio: 1; border-radius: 4px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; border: 1px solid transparent; }
+        .cal-day.active { border-color: var(--accent); color: #fff; }
+        .cal-day.filled { background: var(--g3); color: #020617; font-weight: bold; }
+        .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 4px; }
 
-        /* Soundscapes (Left) */
-        #media-view { background: #020617; display: flex; flex-direction: column; align-items: center; }
-        .track-card { 
-            background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; 
-            padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer;
-            display: flex; align-items: center; gap: 15px; transition: 0.3s;
-        }
-        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); transform: scale(1.02); }
-
-        /* Garden UI (Center) */
+        /* Layout & UI */
+        .track-card { background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 15px; }
+        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
         .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); }
-        .habit { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #1e293b; }
-        .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
+        .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .check.done { background: var(--g3); color: #020617; }
-        .del-btn { color: var(--red); font-size: 0.8rem; opacity: 0.4; border: none; background: none; }
-        
         .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 12px; }
-        .plant { 
-            height: 60px; background: rgba(255,255,255,0.03); border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
-            animation: grow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .plant { height: 60px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.6s ease-out; }
         @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
-
-        /* Breath View (Right) */
-        #breath-view { background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .breath-circle {
-            width: 240px; height: 240px; border: 4px solid var(--g3); border-radius: 50%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: transform 4s linear; box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
-        }
-
-        /* Inputs & Buttons */
+        
+        .breath-circle { width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
         input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; }
+        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 70px;}
         .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; flex: 1; }
     </style>
 </head>
@@ -91,259 +45,162 @@
 
 <div id="screen-container">
     <div class="view" id="media-view">
-        <h2 style="color: var(--accent); margin-top: 1rem;">Soundscapes</h2>
-        <p style="color: var(--muted); margin-bottom: 2rem;">Swipe right for Garden →</p>
-        
-        <div class="track-card" onclick="playTrack('storm', this)">
-            <div style="font-size: 1.8rem;">⛈️</div>
-            <div><strong>Tropical Storm</strong><div style="font-size:0.75rem; color:var(--muted)">Storm.mp3</div></div>
-        </div>
-        <div class="track-card" onclick="playTrack('waves', this)">
-            <div style="font-size: 1.8rem;">🌊</div>
-            <div><strong>Ocean Waves</strong><div style="font-size:0.75rem; color:var(--muted)">Waves.mp3</div></div>
-        </div>
-        <div class="track-card" onclick="playTrack('forest', this)">
-            <div style="font-size: 1.8rem;">🦜</div>
-            <div><strong>Rainforest</strong><div style="font-size:0.75rem; color:var(--muted)">Rainforest.mp3</div></div>
-        </div>
-        <button onclick="stopAudio()" style="margin-top: 2rem; width: 100%; max-width: 350px; background: var(--red); border:none; font-weight: 700;">Silence</button>
+        <h2 style="color: var(--accent)">Sounds</h2>
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div>
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div>
+        <button onclick="stopAudio()" style="width:100%; background:var(--red); border:none; margin-top:20px">Silence</button>
     </div>
 
     <div class="view">
-        <div class="card" style="margin-top: 1rem; background: #1e293b; padding: 0.8rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: var(--accent);">MIND GARDEN</span>
-                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size: 0.9rem; width: auto; color: white;">
-            </div>
-        </div>
-        
         <div class="card">
-            <div id="garden" class="garden"></div>
-        </div>
-        
-        <div class="card" id="habitList"></div>
-        
-        <div class="card">
-            <div style="display:flex; gap:8px">
-                <input id="habitInput" placeholder="New habit..." style="flex:1">
-                <button class="btn-primary" onclick="addHabit()">Add</button>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong id="monthLabel">Calendar</strong>
+                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size: 0.8rem; color: var(--accent); width: auto;">
             </div>
+            <div class="cal-header"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+            <div id="calendar" class="calendar-grid"></div>
+        </div>
+
+        <div class="card"><div id="garden" class="garden"></div></div>
+        
+        <div id="habitList" class="card"></div>
+        
+        <div class="card" style="display:flex; gap:8px">
+            <input id="habitInput" placeholder="New habit..." style="flex:1">
+            <button class="btn-primary" onclick="addHabit()">Add</button>
         </div>
 
         <div class="card">
             <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin-top:10px; height:80px; resize: none;" placeholder="How are you feeling?"></textarea>
-            <button style="width:100%; margin-top:10px; background: var(--accent); border:none; color:#020617; font-weight:700" onclick="saveJournal()">Save Reflection</button>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-bottom: 2rem;">
-            <button class="btn-outline" onclick="exportToICloud()">📥 Export CSV</button>
-            <button class="btn-outline" onclick="document.getElementById('fileInput').click()">📤 Import</button>
-            <input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv">
+            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;"></textarea>
+            <button style="width:100%" onclick="saveJournal()">Save Entry</button>
         </div>
     </div>
 
     <div class="view" id="breath-view">
-        <p style="color: var(--muted); margin-bottom: 3rem;">← Swipe left for Garden</p>
         <div class="breath-circle" id="circle">
-            <span style="font-size:1.1rem; color:var(--g3); text-transform:uppercase; letter-spacing:2px; font-weight:700" id="label">Focus</span>
-            <div style="font-size:4rem; font-weight:800;" id="count">...</div>
+            <span id="label">Focus</span>
+            <div style="font-size:3rem" id="count">...</div>
         </div>
-        <p style="margin-top: 3rem; color: var(--muted); font-size: 0.9rem; text-align: center; line-height: 1.6;">
-            Box Breathing:<br>Inhale • Hold • Exhale • Hold
-        </p>
     </div>
 </div>
 
 <audio id="naturePlayer" loop></audio>
 
 <script>
-// --- AUDIO ENGINE ---
-const player = document.getElementById('naturePlayer');
-let fadeInterval;
-const tracks = { storm: 'Storm.mp3', waves: 'Waves.mp3', forest: 'Rainforest.mp3' };
-
-function playTrack(type, el) {
-    clearInterval(fadeInterval);
-    player.src = tracks[type];
-    player.volume = 0;
-    player.play().then(() => {
-        document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-        el.classList.add('playing');
-        let vol = 0;
-        fadeInterval = setInterval(() => {
-            if (vol < 0.95) { vol += 0.05; player.volume = vol; }
-            else { clearInterval(fadeInterval); }
-        }, 150);
-    }).catch(() => alert("Tap again to enable audio."));
-}
-
-function stopAudio() {
-    clearInterval(fadeInterval);
-    let vol = player.volume;
-    fadeInterval = setInterval(() => {
-        if (vol > 0.05) { vol -= 0.05; player.volume = vol; }
-        else { player.pause(); clearInterval(fadeInterval); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
-    }, 50);
-}
-
-// --- ZEN BREATHING ENGINE ---
-let bT, breathRunning = false;
-function startBreathing() {
-    if(breathRunning) return;
-    breathRunning = true;
-    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
-    const steps=[
-        {t:'Inhale', s:'scale(1.4)', d: 4000},
-        {t:'Hold', s:'scale(1.4)', d: 4000},
-        {t:'Exhale', s:'scale(0.8)', d: 4000},
-        {t:'Hold', s:'scale(0.8)', d: 4000}
-    ];
-    let step = 0, sec = 4;
-    
-    const cycle = () => {
-        l.innerText = steps[step].t;
-        c.style.transition = `transform ${steps[step].d}ms linear`;
-        c.style.transform = steps[step].s;
-        if(navigator.vibrate) navigator.vibrate(100);
-        
-        sec = 4;
-        co.innerText = sec;
-        
-        bT = setInterval(() => {
-            sec--;
-            co.innerText = sec > 0 ? sec : 4;
-            if(sec <= 0) {
-                clearInterval(bT);
-                step = (step + 1) % 4;
-                cycle();
-            }
-        }, 1000);
-    };
-    cycle();
-}
-
-function stopBreathing(){ 
-    clearInterval(bT); 
-    breathRunning = false;
-    document.getElementById('circle').style.transform='scale(1)'; 
-    document.getElementById('count').innerText = "...";
-    document.getElementById('label').innerText = "Focus";
-}
-
-// --- HABIT & GARDEN LOGIC ---
+// --- CORE DATA ---
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-function calculateStreak(doneDates) {
-    if (!doneDates.length) return 0;
-    const sorted = [...new Set(doneDates)].sort().reverse();
-    let streak = 0;
-    let checkDate = new Date();
-    checkDate.setHours(0,0,0,0);
+// --- CALENDAR TRACKER LOGIC ---
+function renderCalendar() {
+    const cal = document.getElementById('calendar');
+    const h = load();
+    const now = new Date(dp.value);
+    const year = now.getFullYear();
+    const month = now.getMonth();
     
-    // Check if streak is still active (today or yesterday)
-    let latest = new Date(sorted[0]);
-    latest.setHours(0,0,0,0);
-    let diff = (checkDate - latest) / (1000*60*60*24);
-    if (diff > 1) return 0;
+    document.getElementById('monthLabel').innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+    cal.innerHTML = '';
 
-    for (let i = 0; i < sorted.length; i++) {
-        let d = new Date(sorted[i]);
-        d.setHours(0,0,0,0);
-        if ((checkDate - d) / (1000*60*60*24) <= streak) {
-            streak++;
-        } else { break; }
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Fill empty start slots
+    for (let i = 0; i < firstDay; i++) cal.innerHTML += '<div></div>';
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isToday = dateStr === dp.value;
+        
+        // Count completions for this day
+        const completions = h.reduce((acc, hab) => acc + (hab.done.includes(dateStr) ? 1 : 0), 0);
+        const intensity = completions > 0 ? (completions / h.length) : 0;
+        
+        const dayEl = document.createElement('div');
+        dayEl.className = `cal-day ${isToday ? 'active' : ''}`;
+        if(intensity > 0) {
+            dayEl.classList.add('filled');
+            dayEl.style.opacity = 0.4 + (intensity * 0.6);
+        }
+        dayEl.innerText = day;
+        dayEl.onclick = () => { dp.value = dateStr; render(); };
+        cal.appendChild(dayEl);
+    }
+}
+
+// --- HABIT STREAKS & GARDEN ---
+function calculateStreak(dates) {
+    let streak = 0;
+    let d = new Date(); d.setHours(0,0,0,0);
+    const sorted = [...new Set(dates)].sort().reverse();
+    if(!sorted.length) return 0;
+    
+    let latest = new Date(sorted[0]); latest.setHours(0,0,0,0);
+    if ((d - latest) / 86400000 > 1) return 0;
+
+    for (let s of sorted) {
+        let sd = new Date(s); sd.setHours(0,0,0,0);
+        if ((d - sd) / 86400000 <= streak) streak++;
+        else break;
     }
     return streak;
 }
 
-function getPlantEmoji(streak) {
-    if (streak >= 15) return '🌳';
-    if (streak >= 7)  return '🌻';
-    if (streak >= 4)  return '🌿';
-    if (streak >= 1)  return '🌱';
-    return '🕳️';
+function render() {
+    const h = load();
+    const d = dp.value;
+    const hl = document.getElementById('habitList');
+    const g = document.getElementById('garden');
+    
+    document.getElementById('journal').value = localStorage.getItem('j-'+d) || '';
+    hl.innerHTML = ''; g.innerHTML = '';
+
+    h.forEach((x, i) => {
+        const streak = calculateStreak(x.done);
+        // Habit List
+        const row = document.createElement('div');
+        row.className = 'habit';
+        row.innerHTML = `<div><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${streak}d</small></div>
+            <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
+        hl.appendChild(row);
+
+        // Garden
+        const p = document.createElement('div');
+        p.className = 'plant';
+        p.innerHTML = streak >= 7 ? '🌻' : streak >= 3 ? '🌿' : streak >= 1 ? '🌱' : '🕳️';
+        g.appendChild(p);
+    });
+    renderCalendar();
 }
-
-
-
-function addHabit() {
-    const i=document.getElementById('habitInput'); if(!i.value.trim())return;
-    const h=load(); h.push({name:i.value, done:[]}); save(h); i.value=''; render();
-}
-
-function delHabit(idx) { if(confirm('Delete this habit and all history?')) { const h=load(); h.splice(idx,1); save(h); render(); } }
 
 function toggle(idx) {
-    const h=load(), d=dp.value, i=h[idx].done.indexOf(d);
-    i>=0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); save(h); render();
+    const h = load(), d = dp.value;
+    const i = h[idx].done.indexOf(d);
+    i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d);
+    save(h); render();
 }
 
-function render() {
-    const h=load(), d=dp.value, hl=document.getElementById('habitList'); hl.innerHTML='';
-    document.getElementById('journal').value = localStorage.getItem('j-'+d)||'';
-    
-    h.forEach((x,i)=>{
-        const row=document.createElement('div'); row.className='habit';
-        const streak = calculateStreak(x.done);
-        row.innerHTML=`
-            <div>
-                <strong>${x.name}</strong>
-                <div style="font-size:0.7rem; color:var(--muted)">Streak: ${streak} days</div>
-            </div>
-            <div style="display:flex;align-items:center; gap:12px">
-                <button class="del-btn" onclick="delHabit(${i})">✕</button>
-                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
-            </div>`;
-        hl.appendChild(row);
-    });
-
-    const g=document.getElementById('garden'); g.innerHTML='';
-    h.forEach(x=>{ 
-        const div=document.createElement('div'); 
-        div.className='plant'; 
-        div.innerHTML=getPlantEmoji(calculateStreak(x.done)); 
-        g.appendChild(div); 
-    });
+function addHabit() {
+    const i = document.getElementById('habitInput');
+    if(!i.value) return;
+    const h = load(); h.push({name: i.value, done: []});
+    save(h); i.value = ''; render();
 }
 
-// --- DATA MANAGEMENT ---
-async function exportToICloud() {
-    let csv="Type,Name,Date,Content\n";
-    load().forEach(h=>h.done.forEach(d=>csv+=`Habit,"${h.name.replace(/"/g,'')}",${d},DONE\n`));
-    Object.keys(localStorage).filter(k=>k.startsWith('j-')).forEach(k=>csv+=`Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g,'')}"\n`);
-    const f=new File([csv], `MindGarden_Export.csv`, {type:'text/csv'});
-    if(navigator.share) navigator.share({files:[f], title:'Mind Garden Backup'});
+function saveJournal() {
+    localStorage.setItem('j-'+dp.value, document.getElementById('journal').value);
+    alert("Saved");
 }
 
-function importCSV(e) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        const habits = [];
-        ev.target.result.split('\n').slice(1).forEach(row => {
-            const p = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if (p.length < 3) return;
-            const type = p[0].trim();
-            if (type==='Habit') {
-                let name = p[1].replace(/"/g,'').trim();
-                let h = habits.find(x=>x.name===name);
-                if (!h) { h={name:name,done:[]}; habits.push(h); }
-                h.done.push(p[2].trim());
-            } else if (type==='Journal') {
-                localStorage.setItem('j-'+p[2].trim(), p[3].replace(/"/g,'').trim());
-            }
-        });
-        save(habits); render(); alert("Data Imported Successfully");
-    };
-    reader.readAsText(e.target.files[0]);
-}
+// --- AUDIO & BREATH (STUBS) ---
+const player = document.getElementById('naturePlayer');
+function playTrack(t, el) { player.src = t+'.mp3'; player.play(); }
+function stopAudio() { player.pause(); }
 
-function saveJournal(){ localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Entry Saved"); }
-
-// --- NAV & GESTURES ---
+// --- NAV ---
 let startX = 0, currentPane = 1;
 document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
 document.addEventListener('touchend', e => {
@@ -352,7 +209,6 @@ document.addEventListener('touchend', e => {
         if (diff > 0 && currentPane > 0) currentPane--;
         else if (diff < 0 && currentPane < 2) currentPane++;
         document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
-        if (currentPane === 2) startBreathing(); else stopBreathing();
     }
 });
 
