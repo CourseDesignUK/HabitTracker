@@ -9,7 +9,8 @@
     <style>
         :root {
             --bg: #020617; --card: #0f172a; --muted: #94a3b8;
-            --g3: #22c55e; --yellow: #facc15; --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
+            --g-pale: #86efac; --g-dark: #166534; --yellow: #facc15; 
+            --red: #ef4444; --accent: #38bdf8; --border: #1e293b;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #fff; overflow: hidden; overscroll-behavior: none; }
@@ -28,17 +29,17 @@
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
         .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); }
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
-        .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .check.done { background: var(--g3); color: #020617; }
+        .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .check.done { background: #22c55e; color: #020617; }
         .del-btn { color: var(--red); font-size: 0.65rem; background: none; border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 6px; border-radius: 4px; opacity: 0.5; }
 
         .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
         .plant { height: 55px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.5s ease; }
         
-        .breath-circle { width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
+        .breath-circle { width: 220px; height: 220px; border: 4px solid #22c55e; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
         
         input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; }
+        .btn-primary { background: #22c55e; color: #020617; border: none; font-weight: 700; }
         .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.75rem; padding: 10px; flex: 1; }
         @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
@@ -55,18 +56,18 @@
     </div>
 
     <div class="view">
+        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
+        
+        <div id="habitList" class="card"></div>
+
         <div class="card" style="padding: 0.8rem; background: #1e293b;">
             <div style="display:flex; justify-content: space-between; align-items:center;">
-                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Calendar</span>
+                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Progress Heatmap</span>
                 <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size:0.8rem; color:var(--accent); width:auto;">
             </div>
             <div class="cal-header" style="margin-top:10px"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
             <div id="calendar" class="calendar-grid"></div>
         </div>
-
-        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
-        
-        <div id="habitList" class="card"></div>
         
         <div class="card" style="display:flex; gap:8px">
             <input id="habitInput" placeholder="New habit..." style="flex:1">
@@ -88,7 +89,7 @@
 
     <div class="view" id="breath-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <div class="breath-circle" id="circle">
-            <span id="label" style="text-transform:uppercase; letter-spacing:1px; color:var(--g3)">Prepare</span>
+            <span id="label" style="text-transform:uppercase; letter-spacing:1px; color:#22c55e">Prepare</span>
             <div style="font-size:3.5rem; font-weight:800" id="count">...</div>
         </div>
     </div>
@@ -104,7 +105,6 @@ dp.value = todayStr;
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-// --- ANALYTICS & CALENDAR ---
 function calculateStreakOnDate(dates, targetDateStr) {
     const targetDate = new Date(targetDateStr + "T12:00:00");
     const sorted = [...new Set(dates)].map(d => new Date(d + "T12:00:00")).filter(d => d <= targetDate).sort((a,b) => b-a);
@@ -138,12 +138,14 @@ function renderCalendar() {
         
         if (ratio > 0) {
             dEl.classList.add('filled');
-            if (ratio >= 0.5) {
-                // Vibrant Greens for >= 50%
-                dEl.style.background = `rgba(34, 197, 94, ${0.3 + (ratio * 0.7)})`;
+            dEl.style.color = "#000";
+            if (ratio > 0.75) {
+                dEl.style.background = "var(--g-dark)";
+                dEl.style.color = "#fff";
+            } else if (ratio >= 0.50) {
+                dEl.style.background = "var(--g-pale)";
             } else {
-                // Yellow for < 50%
-                dEl.style.background = `rgba(250, 204, 21, ${0.4 + (ratio * 0.6)})`;
+                dEl.style.background = "var(--yellow)";
             }
         }
         
@@ -181,7 +183,6 @@ function render() {
     renderCalendar();
 }
 
-// --- ACTIONS ---
 function toggle(idx) {
     const h = load(), d = dp.value;
     const i = h[idx].done.indexOf(d);
@@ -227,8 +228,7 @@ function importData(e) {
             const type = parts[0].trim();
             const name = parts[1].replace(/"/g,'').trim();
             const date = parts[2].trim();
-            const content = parts[3].replace(/"/g,'').trim();
-
+            const content = parts[3] ? parts[3].replace(/"/g,'').trim() : "";
             if (type === 'Habit') {
                 let habit = h.find(x => x.name === name);
                 if (!habit) { habit = {name, done:[]}; h.push(habit); }
@@ -243,7 +243,6 @@ function importData(e) {
     reader.readAsText(e.target.files[0]);
 }
 
-// --- UTILS ---
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
     player.src = t+'.mp3'; player.play(); 
