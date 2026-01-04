@@ -21,8 +21,7 @@
         .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6rem; color: var(--muted); margin-bottom: 5px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-day { aspect-ratio: 1; border-radius: 3px; background: #1e293b; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; }
-        .cal-day.filled { color: #020617; font-weight: bold; }
+        .cal-day.active { border-color: var(--accent); color: #fff; transform: scale(1.1); z-index: 10; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
 
         /* UI Components */
         .track-card { background: var(--card); width: 100%; max-width: 350px; border-radius: 16px; padding: 1.2rem; margin: 8px 0; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 15px; }
@@ -31,15 +30,18 @@
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
         .check { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .check.done { background: var(--g3); color: #020617; }
+        .del-btn { color: var(--red); font-size: 0.75rem; background: none; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: 6px; cursor: pointer; opacity: 0.6; }
+        .del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+
         .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
         .plant { height: 55px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; animation: grow 0.5s ease; }
         
-        /* Breathing */
         #breath-view { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .breath-circle { width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; }
         
         input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 70px; }
+        .btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; }
+        .btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; padding: 8px; flex: 1; }
         @keyframes grow { from { transform: scale(0); } to { transform: scale(1); } }
     </style>
 </head>
@@ -64,7 +66,7 @@
             <div id="calendar" class="calendar-grid"></div>
         </div>
 
-        <div class="card"><strong>Garden</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
+        <div class="card"><strong>Garden (History View)</strong><div id="garden" class="garden" style="margin-top:10px"></div></div>
         
         <div id="habitList" class="card"></div>
         
@@ -75,8 +77,12 @@
 
         <div class="card">
             <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="Thoughts..."></textarea>
+            <textarea id="journal" style="width:100%; margin:10px 0; height:60px; resize:none;" placeholder="How's your mind today?"></textarea>
             <button style="width:100%" onclick="saveJournal()">Save Entry</button>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <button class="btn-outline" style="width:100%" onclick="exportData()">📥 Export Garden History (CSV)</button>
         </div>
     </div>
 
@@ -92,54 +98,25 @@
 <audio id="naturePlayer" loop></audio>
 
 <script>
-// --- AUDIO ENGINE ---
-const player = document.getElementById('naturePlayer');
-const tracks = { storm: 'Storm.mp3', waves: 'Waves.mp3', forest: 'Rainforest.mp3' };
-function playTrack(t, el) { 
-    player.src = tracks[t]; 
-    player.play(); 
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    el.classList.add('playing');
-}
-function stopAudio() { 
-    player.pause(); 
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-}
-
-// --- BREATH ENGINE ---
-let bT;
-function startBreathing() {
-    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
-    const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
-    let step=0, sec=4;
-    const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; };
-    update();
-    bT = setInterval(() => {
-        co.innerText = sec;
-        if(sec === 0) {
-            step=(step+1)%4; sec=4; update();
-        }
-        sec--;
-    }, 1000);
-}
-function stopBreathing(){ clearInterval(bT); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; }
-
-// --- DATA & GARDEN ---
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-function calculateStreak(dates) {
-    let streak = 0;
-    const today = new Date(); today.setHours(0,0,0,0);
-    const sorted = [...new Set(dates)].sort().reverse();
+// --- CALENDAR & STREAKS ---
+function calculateStreakOnDate(dates, targetDateStr) {
+    const targetDate = new Date(targetDateStr); targetDate.setHours(0,0,0,0);
+    const sorted = [...new Set(dates)].map(d => new Date(d)).filter(d => d <= targetDate).sort((a,b) => b-a);
     if(!sorted.length) return 0;
-    let latest = new Date(sorted[0]); latest.setHours(0,0,0,0);
-    if ((today - latest) / 86400000 > 1) return 0;
-    for (let s of sorted) {
-        let sd = new Date(s); sd.setHours(0,0,0,0);
-        if ((today - sd) / 86400000 <= streak) streak++; else break;
+    
+    let latest = sorted[0]; latest.setHours(0,0,0,0);
+    if ((targetDate - latest) / 86400000 > 0) return 0;
+
+    let streak = 0;
+    for (let i = 0; i < sorted.length; i++) {
+        let expected = new Date(targetDate);
+        expected.setDate(targetDate.getDate() - i);
+        if (sorted[i].getTime() === expected.getTime()) streak++; else break;
     }
     return streak;
 }
@@ -147,28 +124,20 @@ function calculateStreak(dates) {
 function renderCalendar() {
     const cal = document.getElementById('calendar');
     const h = load();
-    const curr = new Date(dp.value);
+    const curr = new Date(dp.value + "T12:00:00"); // Avoid timezone shift
     const month = curr.getMonth(), year = curr.getFullYear();
-    
     document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
     cal.innerHTML = '';
-    
     const first = new Date(year, month, 1).getDay();
     const total = new Date(year, month + 1, 0).getDate();
-
     for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
-
     for (let day = 1; day <= total; day++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         const count = h.reduce((acc, hab) => acc + (hab.done.includes(dateStr) ? 1 : 0), 0);
         const intensity = h.length ? count / h.length : 0;
-        
         const dEl = document.createElement('div');
         dEl.className = `cal-day ${dateStr === dp.value ? 'active' : ''}`;
-        if(intensity > 0) {
-            dEl.classList.add('filled');
-            dEl.style.background = `rgba(34, 197, 94, ${0.2 + (intensity * 0.8)})`;
-        }
+        if(intensity > 0) dEl.style.background = `rgba(34, 197, 94, ${0.2 + (intensity * 0.8)})`;
         dEl.innerText = day;
         dEl.onclick = () => { dp.value = dateStr; render(); };
         cal.appendChild(dEl);
@@ -183,11 +152,18 @@ function render() {
     hl.innerHTML = ''; g.innerHTML = '';
 
     h.forEach((x, i) => {
-        const s = calculateStreak(x.done);
+        const s = calculateStreakOnDate(x.done, d);
         const row = document.createElement('div');
         row.className = 'habit';
-        row.innerHTML = `<div><strong>${x.name}</strong><br><small style="color:var(--muted)">Streak: ${s}d</small></div>
-            <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
+        row.innerHTML = `
+            <div style="flex:1">
+                <strong>${x.name}</strong><br>
+                <small style="color:var(--muted)">Streak: ${s}d</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px">
+                <button class="del-btn" onclick="deleteHabit(${i})">Delete</button>
+                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
+            </div>`;
         hl.appendChild(row);
 
         const p = document.createElement('div');
@@ -198,6 +174,7 @@ function render() {
     renderCalendar();
 }
 
+// --- ACTIONS ---
 function toggle(idx) {
     const h = load(), d = dp.value;
     const i = h[idx].done.indexOf(d);
@@ -211,16 +188,53 @@ function addHabit() {
     save(h); i.value = ''; render();
 }
 
-function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Saved"); }
+function deleteHabit(idx) {
+    if (confirm("Permanently delete this habit and all its history?")) {
+        const h = load();
+        h.splice(idx, 1);
+        save(h);
+        render();
+    }
+}
 
-// --- NAVIGATION ---
+function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal saved for " + dp.value); }
+
+function exportData() {
+    const h = load();
+    let csv = "Type,Item,Date,Status/Content\n";
+    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
+    Object.keys(localStorage).filter(k => k.startsWith('j-')).forEach(k => {
+        csv += `Journal,,${k.replace('j-','')},"${localStorage.getItem(k).replace(/"/g, '""')}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `MindGarden_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+}
+
+// --- UTILS (SOUND, BREATH, NAV) ---
+const player = document.getElementById('naturePlayer');
+function playTrack(t, el) { player.src = t+'.mp3'; player.play(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); el.classList.add('playing');}
+function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));}
+
+let bT;
+function startBreathing() {
+    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
+    const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
+    let step=0, sec=4;
+    const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; };
+    update();
+    bT = setInterval(() => { co.innerText = sec; if(sec === 0) { step=(step+1)%4; sec=4; update(); } sec--; }, 1000);
+}
+function stopBreathing(){ clearInterval(bT); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; }
+
 let startX = 0, currentPane = 1;
 document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
 document.addEventListener('touchend', e => {
     let diff = e.changedTouches[0].screenX - startX;
     if (Math.abs(diff) > 60) {
-        if (diff > 0 && currentPane > 0) currentPane--;
-        else if (diff < 0 && currentPane < 2) currentPane++;
+        if (diff > 0 && currentPane > 0) currentPane--; else if (diff < 0 && currentPane < 2) currentPane++;
         document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
         if (currentPane === 2) startBreathing(); else stopBreathing();
     }
