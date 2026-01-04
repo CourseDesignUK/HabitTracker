@@ -33,7 +33,6 @@
             height: 100%; width: 100%;
         }
 
-        /* Orientation Lock UI */
         #portrait-warning {
             display: none; position: fixed; inset: 0; background: var(--bg);
             z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
@@ -85,6 +84,8 @@
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer;}
         .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); }
+        .delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
+        .delete-btn:active { background: var(--red); color: #fff; }
 
         .breath-circle { width: 220px; height: 220px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; position: relative; cursor: pointer; }
         .breath-circle.animating::after { content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
@@ -197,8 +198,13 @@ function render() {
     hl.innerHTML = ''; g.innerHTML = '';
     h.forEach((x, i) => {
         const s = calculateStreak(x.done, d);
-        hl.innerHTML += `<div class="habit"><div><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div>
-            <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div></div>`;
+        hl.innerHTML += `<div class="habit">
+            <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div>
+            <div style="display:flex; align-items:center; gap:12px">
+                <button class="delete-btn" onclick="deleteHabit(${i})">Delete</button>
+                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div>
+            </div>
+        </div>`;
         g.innerHTML += `<div class="plant">${s>=7?'🌻':s>=3?'🌿':s>=1?'🌱':'🕳️'}</div>`;
     });
     updateCaffeineUI();
@@ -219,6 +225,13 @@ function addHabit() {
     const i = document.getElementById('habitInput'); if(!i.value.trim()) return;
     const h = load(); h.push({name: i.value.trim(), done: []});
     save(h); i.value = ''; render();
+}
+function deleteHabit(idx) {
+    const h = load();
+    if(confirm(`Are you sure you want to remove "${h[idx].name}"? This will delete all history for this habit.`)) {
+        h.splice(idx, 1);
+        save(h); render();
+    }
 }
 function renderCalendar() {
     const cal = document.getElementById('calendar');
