@@ -7,8 +7,8 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -27,63 +27,45 @@
         html { background: var(--bg); height: 100%; width: 100%; overflow: hidden; }
 
         body { 
-            margin: 0; 
-            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0; font-family: -apple-system, system-ui, sans-serif;
             background: radial-gradient(circle at top right, #0f172a, #020617);
-            color: #fff; 
-            overflow: hidden; 
-            overscroll-behavior: none; 
-            height: 100%;
-            width: 100%;
+            color: #fff; overflow: hidden; overscroll-behavior: none; 
+            height: 100%; width: 100%;
+        }
+
+        /* Orientation Lock UI */
+        #portrait-warning {
+            display: none; position: fixed; inset: 0; background: var(--bg);
+            z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
+        }
+        @media (orientation: landscape) and (max-height: 500px) {
+            #portrait-warning { display: flex; }
         }
 
         #screen-container { 
-            display: flex; 
-            width: 300%; 
-            height: 100%; 
-            will-change: transform;
-            transform: translateX(-33.333333%);
+            display: flex; width: 300%; height: 100%; 
+            will-change: transform; transform: translateX(-33.333333%);
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .view { 
-            width: 33.333333%; 
-            height: 100%; 
-            overflow-y: auto; 
-            padding: 1.5rem; 
+            width: 33.333333%; height: 100%; overflow-y: auto; padding: 1.5rem; 
             padding-top: calc(env(safe-area-inset-top) + 10px); 
             padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
-            position: relative;
-            flex-shrink: 0;
+            position: relative; flex-shrink: 0;
         }
 
         .nav-dots {
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom) + 20px);
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 12px;
-            z-index: 100;
-            pointer-events: none;
+            position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px);
+            left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100;
         }
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transition: 0.3s;
-        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; }
         .dot.active { background: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px var(--accent); }
 
         .card { 
-            background: var(--card); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 24px; 
-            padding: 1.2rem; 
-            margin-bottom: 1rem; 
-            border: 1px solid var(--border);
+            background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border);
         }
 
         .caffeine-row { display: flex; align-items: center; justify-content: space-between; }
@@ -115,12 +97,17 @@
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
 
-        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
+        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; outline: none; }
         .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; cursor: pointer;}
         .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; cursor: pointer;}
     </style>
 </head>
 <body>
+
+<div id="portrait-warning">
+    <h1>🌱</h1>
+    <p>Please rotate your device to portrait mode to tend to your garden.</p>
+</div>
 
 <div class="nav-dots">
     <div class="dot" id="dot0"></div>
@@ -144,7 +131,7 @@
             <div class="caffeine-row">
                 <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups today</small></div>
                 <div class="caf-controls">
-                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">-</button>
+                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">−</button>
                     <span id="caffeineCount" style="font-size:1.5rem; font-weight:800; min-width:24px; text-align:center">0</span>
                     <button class="caf-btn" onclick="addCaffeine(1)">+</button>
                 </div>
@@ -186,7 +173,6 @@
 <audio id="naturePlayer" loop></audio>
 
 <script>
-/* HABIT & CAFFEINE LOGIC */
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
@@ -260,7 +246,7 @@ function renderCalendar() {
 /* AUDIO & MINDFULNESS */
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = './' + t + '.mp3'; player.play();
+    player.src = './' + t + '.mp3'; player.play().catch(() => alert("Soundscape not found."));
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
 }
@@ -295,7 +281,7 @@ function togglePomo() {
     }
 }
 
-/* GESTURES */
+/* GESTURES & SNAPPING */
 const container = document.getElementById('screen-container');
 let startTouchX = 0, currentPane = 1, isDragging = false, startTime = 0, transformX = -33.333333;
 const updateUI = (x) => {
@@ -322,15 +308,57 @@ window.addEventListener('touchend', (e) => {
     }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     transformX = currentPane * -33.333333; updateUI(transformX);
-    if (currentPane !== 2) { stopB(); if(isPomoRunning) togglePomo(); }
+    if (currentPane !== 2) { stopB(); }
 });
 
-/* SERVICE WORKER */
+/* ROBUST BACKUP/RESTORE */
+function exportData() {
+    const h = load();
+    let csv = "Type,Item,Date,Content\n";
+    h.forEach(hab => hab.done.forEach(date => {
+        const safeName = hab.name.replace(/"/g, '""');
+        csv += `Habit,"${safeName}",${date},DONE\n`;
+    }));
+    const caf = JSON.parse(localStorage.getItem('caffeine') || '{}');
+    Object.keys(caf).forEach(date => { csv += `Caffeine,,${date},${caf[date]}\n`; });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `MindGarden_Backup_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function importData(e) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        try {
+            const lines = event.target.result.split('\n').slice(1);
+            const h = [];
+            const newCaf = JSON.parse(localStorage.getItem('caffeine') || '{}');
+            lines.forEach(line => {
+                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (parts.length < 3) return;
+                const type = parts[0].trim(), item = parts[1] ? parts[1].replace(/"/g, '').trim() : "", date = parts[2].trim(), content = parts[3] ? parts[3].replace(/"/g, '').trim() : "";
+                if (type === 'Habit') {
+                    let hab = h.find(x => x.name === item);
+                    if (!hab) { hab = {name: item, done:[]}; h.push(hab); }
+                    if (!hab.done.includes(date)) hab.done.push(date);
+                } else if (type === 'Caffeine') { newCaf[date] = parseInt(content) || 0; }
+            });
+            if (h.length > 0) save(h);
+            localStorage.setItem('caffeine', JSON.stringify(newCaf));
+            render(); alert("Backup Restored Successfully!");
+        } catch (err) { alert("Error parsing backup file."); }
+    };
+    reader.readAsText(e.target.files[0]);
+}
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Registered"));
 }
-
-dp.onchange = render;
 render();
 </script>
 </body>
