@@ -35,12 +35,12 @@
             height: 100%;
         }
 
-        /* The Snapping Container */
         #screen-container { 
             display: flex; 
             width: 300%; 
             height: 100%; 
             will-change: transform;
+            transform: translateX(-33.333%);
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -64,8 +64,34 @@
             border: 1px solid var(--border);
         }
 
-        .caffeine-row { display: flex; align-items: center; justify-content: space-between; }
-        .caf-btn { width: 44px; height: 44px; border-radius: 12px; background: #92400e; border: none; color: white; font-size: 1.5rem; font-weight: bold; }
+        /* Centered Caffeine Row */
+        .caffeine-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+        
+        .caf-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .caf-btn { 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 12px; 
+            background: #92400e; 
+            border: none; 
+            color: white; 
+            font-size: 1.5rem; 
+            font-weight: bold; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
 
         .track-card { background: var(--card); border-radius: 16px; padding: 1.2rem; margin: 10px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
@@ -86,9 +112,9 @@
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
 
-        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; }
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; }
+        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; outline: none; }
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -99,16 +125,16 @@
         <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong></div></div>
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong></div></div>
         <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong></div></div>
-        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white">Mute</button>
+        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white; cursor:pointer">Mute</button>
     </div>
 
     <div class="view">
         <div class="card">
             <div class="caffeine-row">
                 <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups today</small></div>
-                <div style="display:flex; gap:10px; align-items:center">
-                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">-</button>
-                    <span id="caffeineCount" style="font-size:1.5rem; font-weight:800; width:20px; text-align:center">0</span>
+                <div class="caf-controls">
+                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">−</button>
+                    <span id="caffeineCount" style="font-size:1.5rem; font-weight:800; min-width:24px; text-align:center">0</span>
                     <button class="caf-btn" onclick="addCaffeine(1)">+</button>
                 </div>
             </div>
@@ -139,7 +165,6 @@
 
     <div class="view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <h3 style="color: var(--g-pale); margin-bottom: 2rem;">Box Breathing</h3>
-        
         <div class="breath-circle" id="circle" onclick="toggleBreathing()">
             <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Tap to Start</span>
             <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
@@ -154,7 +179,7 @@ const dp = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().slice(0, 10);
 dp.value = todayStr;
 
-/* Logic */
+/* Caffeine Tracker */
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 function addCaffeine(val) {
     const d = dp.value;
@@ -168,6 +193,7 @@ function updateCaffeineUI() {
     document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
 }
 
+/* Habit Garden Logic */
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
@@ -227,6 +253,7 @@ function renderCalendar() {
     }
 }
 
+/* Audio Player */
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
     player.src = './' + t + '.mp3'; player.play();
@@ -235,6 +262,7 @@ function playTrack(t, el) {
 }
 function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
+/* Breathing Session */
 let bT, isB = false;
 function toggleBreathing() { isB ? stopB() : startB(); }
 function startB() {
@@ -247,18 +275,19 @@ function startB() {
 }
 function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Start'; }
 
-/* SNAP-TO-SCENE SWIPE LOGIC */
+/* Snapping Scene Swipe */
 const container = document.getElementById('screen-container');
 let startTouchX = 0;
-let currentPane = 1; // Start in middle (Dashboard)
+let currentPane = 1; 
 let isDragging = false;
 let startTime = 0;
+let prevTranslate = -33.333;
 
 window.addEventListener('touchstart', (e) => {
     startTouchX = e.touches[0].clientX;
     startTime = Date.now();
     isDragging = true;
-    container.style.transition = 'none'; // Disable transition for raw dragging
+    container.style.transition = 'none';
 });
 
 window.addEventListener('touchmove', (e) => {
@@ -275,19 +304,48 @@ window.addEventListener('touchend', (e) => {
     const diff = endTouchX - startTouchX;
     const velocity = Math.abs(diff) / (Date.now() - startTime);
 
-    // If swipe is fast (velocity > 0.5) or far (diff > 1/4 screen)
     if (velocity > 0.5 || Math.abs(diff) > window.innerWidth / 4) {
         if (diff < 0 && currentPane < 2) currentPane++;
         else if (diff > 0 && currentPane > 0) currentPane--;
     }
 
-    // Snap to the currentPane
     container.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-    container.style.transform = `translateX(${currentPane * -33.333}%)`;
+    prevTranslate = currentPane * -33.333;
+    container.style.transform = `translateX(${prevTranslate}%)`;
     
-    // Stop breathing if we leave the breathing screen
     if (currentPane !== 2) stopB();
 });
+
+/* Export/Import */
+function exportData() {
+    const h = load();
+    let csv = "Type,Item,Date,Content\n";
+    h.forEach(hab => hab.done.forEach(date => csv += `Habit,"${hab.name.replace(/"/g,'""')}",${date},DONE\n`));
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `MindGarden_Backup.csv`; a.click();
+}
+
+function importData(e) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const lines = event.target.result.split('\n').slice(1);
+        const h = [];
+        lines.forEach(line => {
+            const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (parts.length < 3) return;
+            const type = parts[0].trim(), name = parts[1].replace(/"/g,''), date = parts[2].trim();
+            if (type === 'Habit') {
+                let habit = h.find(x => x.name === name);
+                if (!habit) { habit = {name, done:[]}; h.push(habit); }
+                habit.done.push(date);
+            }
+        });
+        if (h.length) save(h);
+        render(); alert("Import Complete");
+    };
+    reader.readAsText(e.target.files[0]);
+}
 
 dp.onchange = render;
 render();
