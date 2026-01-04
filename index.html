@@ -8,104 +8,96 @@
 <style>
 :root {
   --bg: #020617; --card: #0f172a; --muted: #94a3b8;
-  --g3: #22c55e; --red: #ef4444;
+  --g3: #22c55e; --red: #ef4444; --accent: #38bdf8;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { 
   margin: 0; font-family: -apple-system, system-ui, sans-serif; 
-  background: var(--bg); color: #fff; overflow-x: hidden;
+  background: var(--bg); color: #fff; overflow: hidden;
 }
 
-#main-view {
-  padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
-  max-width: 500px; margin: auto; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+/* Screen Wrapper */
+#screen-container {
+    display: flex; width: 300%; height: 100vh;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(-33.33%); /* Start at center (Garden) */
 }
 
-/* Box Breathing Overlay */
-#breath-view {
-  position: fixed; top: 0; left: -100%; width: 100%; height: 100%;
-  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 100;
-}
-#breath-view.active { left: 0; }
+.view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1rem; position: relative; }
 
-.breath-container { position: relative; width: 250px; height: 250px; display: flex; align-items: center; justify-content: center; }
+/* Media Player View (Left) */
+#media-view { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.track-card { background: rgba(255,255,255,0.05); width: 100%; max-width: 350px; border-radius: 20px; padding: 1.5rem; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: background 0.2s; }
+.track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+.track-card h3 { margin: 0; font-size: 1.1rem; }
+.track-card p { margin: 5px 0 0; font-size: 0.8rem; color: var(--muted); }
 
+/* Box Breathing (Right) */
+#breath-view { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .breath-circle {
   width: 180px; height: 180px; border: 4px solid var(--g3); border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  transition: transform 4s linear;
-  box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+  transition: transform 4s linear; box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
 }
 
-.breath-label { font-size: 1.2rem; font-weight: bold; color: var(--g3); text-transform: uppercase; letter-spacing: 2px; }
-.countdown { font-size: 2.5rem; font-weight: 800; color: #fff; margin-top: 5px; }
-
-/* UI Cards */
+/* Garden (Center) */
 .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid #1f2937; }
 .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f2937; }
-.habit-actions { display: flex; align-items: center; gap: 15px; }
-.check { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.check { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; }
 .check.done { background: var(--g3); color: #020617; }
-.del-btn { color: var(--red); font-size: 0.8rem; opacity: 0.5; border: none; background: none; padding: 5px; }
-
-/* Buttons & Inputs */
-input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; font-size: 16px; }
-.btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 80px; }
-.btn-outline { background: transparent; border: 1px solid #334155; font-size: 0.8rem; padding: 10px; color: #fff; flex: 1; border-radius: 12px;}
 .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; }
 .plant { height: 60px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+input, textarea, button { background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: #fff; padding: 12px; }
+.btn-primary { background: var(--g3); color: #020617; border: none; font-weight: 700; width: 80px; }
 </style>
 </head>
 <body>
 
-<div id="breath-view">
-    <p style="color: var(--muted); margin-bottom: 3rem;">← Swipe Left to Garden</p>
-    <div class="breath-container">
+<div id="screen-container">
+    <div class="view" id="media-view">
+        <h2 style="color: var(--accent)">Nature Sounds</h2>
+        <p style="color: var(--muted); margin-bottom: 2rem;">Swipe Right for Garden</p>
+        
+        <div class="track-card" onclick="playTrack('storm', this)">
+            <h3>⛈️ Tropical Storm</h3>
+            <p>Thunder and heavy tropical rain</p>
+        </div>
+        <div class="track-card" onclick="playTrack('waves', this)">
+            <h3>🌊 Ocean Waves</h3>
+            <p>Steady rhythm of the Pacific</p>
+        </div>
+        <div class="track-card" onclick="playTrack('forest', this)">
+            <h3>🦜 Rainforest</h3>
+            <p>Birds and gentle jungle canopy</p>
+        </div>
+
+        <button onclick="stopAudio()" style="margin-top: 2rem; width: 200px; background: var(--red); border:none;">Stop Audio</button>
+    </div>
+
+    <div class="view">
+        <div class="card" style="margin-top: 1rem; background: #1e293b;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.8rem; color: var(--muted)">← Sounds | Garden | Zen →</span>
+                <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size: 0.8rem;">
+            </div>
+        </div>
+        <div class="card"><strong>Garden</strong><div id="garden" class="garden" style="margin-top: 10px;"></div></div>
+        <div class="card" id="habitList"></div>
+        <div class="card"><div style="display:flex; gap:8px"><input id="habitInput" placeholder="New habit..." style="flex:1"><button class="btn-primary" onclick="addHabit()">Add</button></div></div>
+        <div class="card"><strong>Journal</strong><textarea id="journal" style="width:100%; margin-top:10px; height:80px" placeholder="Thoughts..."></textarea><button style="width:100%; margin-top:10px" onclick="saveJournal()">Save Entry</button></div>
+        <div class="card"><strong>Backup</strong><div id="monthly" style="overflow-x: auto; margin: 10px 0;"></div><div style="display:flex; gap:8px"><button style="flex:1" onclick="exportToICloud()">📥 iCloud</button><button style="flex:1" onclick="document.getElementById('fileInput').click()">📤 Import</button></div><input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv"></div>
+    </div>
+
+    <div class="view" id="breath-view">
+        <p style="color: var(--muted); margin-bottom: 3rem;">← Swipe Left to Garden</p>
         <div class="breath-circle" id="circle">
-            <span class="breath-label" id="label">Prepare</span>
-            <div class="countdown" id="count">...</div>
+            <span style="font-size:1.2rem; color:var(--g3); text-transform:uppercase;" id="label">Prepare</span>
+            <div style="font-size:2.5rem; font-weight:800;" id="count">...</div>
         </div>
     </div>
 </div>
 
-<main id="main-view">
-  <div class="card" style="margin-top: 1rem; background: #1e293b;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 0.8rem; color: var(--muted)">Log Date:</span>
-      <input type="date" id="datePicker" style="border:none; padding:0; background:none;">
-    </div>
-  </div>
-
-  <div class="card"><strong>Garden</strong><div id="garden" class="garden" style="margin-top: 10px;"></div></div>
-  
-  <div class="card" id="habitList"></div>
-
-  <div class="card">
-    <div style="display: flex; gap: 8px;">
-      <input id="habitInput" placeholder="New habit..." style="flex:1">
-      <button class="btn-primary" onclick="addHabit()">Add</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <strong>Journal</strong>
-    <textarea id="journal" style="width:100%; margin-top:10px; height:80px" placeholder="Thoughts..."></textarea>
-    <button style="width:100%; margin-top:10px" onclick="saveJournal()">Save Entry</button>
-  </div>
-
-  <div class="card">
-    <strong>Backup & Activity</strong>
-    <div id="monthly" style="overflow-x: auto; margin-top: 10px; margin-bottom: 1.5rem;"></div>
-    <div style="display: flex; gap: 8px;">
-      <button class="btn-outline" onclick="exportToICloud()">📥 Save to iCloud</button>
-      <button class="btn-outline" onclick="document.getElementById('fileInput').click()">📤 Import</button>
-    </div>
-    <input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv">
-  </div>
-</main>
+<audio id="naturePlayer" loop></audio>
 
 <script>
 const dp = document.getElementById('datePicker');
@@ -113,128 +105,85 @@ dp.value = new Date().toISOString().slice(0, 10);
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-// --- VIBRATION & BREATHING ---
-let breathTimer, countTimer;
-function startBreathing() {
-    const label = document.getElementById('label'), circle = document.getElementById('circle'), countEl = document.getElementById('count');
-    const steps = [{t:'Inhale', s:'scale(1.3)'},{t:'Hold', s:'scale(1.3)'},{t:'Exhale', s:'scale(0.7)'},{t:'Hold', s:'scale(0.7)'}];
-    let step = 0, sec = 4;
-    const update = () => {
-        label.innerText = steps[step].t; circle.style.transform = steps[step].s;
-        if(navigator.vibrate) navigator.vibrate(100);
-    };
-    update();
-    breathTimer = setInterval(() => { step=(step+1)%4; sec=4; update(); }, 4000);
-    countTimer = setInterval(() => { sec--; if(sec<=0) sec=4; countEl.innerText=sec; if(navigator.vibrate) navigator.vibrate(10); }, 1000);
-}
-function stopBreathing() { clearInterval(breathTimer); clearInterval(countTimer); }
+// --- MEDIA PLAYER ---
+const player = document.getElementById('naturePlayer');
+const tracks = {
+    storm: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_f6707a0499.mp3?filename=thunder-nature-sounds-8422.mp3',
+    waves: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_2491a56653.mp3?filename=ocean-waves-112906.mp3',
+    forest: 'https://cdn.pixabay.com/download/audio/2021/11/25/audio_254054a737.mp3?filename=tropical-forest-with-exotic-birds-sounds-8356.mp3'
+};
 
-// --- ICLOUD EXPORT ---
-async function exportToICloud() {
-    let csv = "Type,Name,Date,Content\n";
-    load().forEach(h => h.done.forEach(d => csv += `Habit,"${h.name}",${d},DONE\n`));
-    Object.keys(localStorage).filter(k=>k.startsWith('j-')).forEach(k=>csv+=`Journal,,${k.replace('j-','')},"${localStorage.getItem(k)}"\n`);
-    
-    const filename = `MindGarden_${dp.value}.csv`;
-    const blob = new Blob([csv], { type: 'text/csv' });
-    
-    // Check if system sharing is available (iOS/Mobile Safari)
-    if (navigator.canShare && navigator.share) {
-        const file = new File([blob], filename, { type: 'text/csv' });
-        try {
-            await navigator.share({
-                files: [file],
-                title: 'Mind Garden Backup',
-            });
-        } catch (err) { console.log("Share failed", err); }
-    } else {
-        // Fallback for desktop
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
+function playTrack(type, el) {
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+    player.src = tracks[type];
+    player.play();
+}
+
+function stopAudio() {
+    player.pause();
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+}
+
+// --- NAVIGATION ---
+let startX = 0, currentPane = 1; // 0=Media, 1=Garden, 2=Breath
+document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
+document.addEventListener('touchend', e => {
+    let diff = e.changedTouches[0].screenX - startX;
+    if (Math.abs(diff) > 80) {
+        if (diff > 0 && currentPane > 0) currentPane--;
+        else if (diff < 0 && currentPane < 2) currentPane++;
+        updatePane();
     }
+});
+
+function updatePane() {
+    document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
+    if (currentPane === 2) startBreathing(); else stopBreathing();
 }
 
-// --- CORE APP ---
-function addHabit() {
-  const i = document.getElementById('habitInput');
-  if (!i.value.trim()) return;
-  const h = load(); h.push({ name: i.value, done: [] });
-  save(h); i.value = ''; render();
+// --- BREATHING & HABITS ---
+let bT, cT;
+function startBreathing() {
+    const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
+    const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
+    let s=0, sec=4;
+    const up=()=>{ l.innerText=steps[s].t; c.style.transform=steps[s].s; if(navigator.vibrate)navigator.vibrate(100); };
+    up();
+    bT=setInterval(()=>{s=(s+1)%4; sec=4; up();}, 4000);
+    cT=setInterval(()=>{sec--; if(sec<=0)sec=4; co.innerText=sec; if(navigator.vibrate)navigator.vibrate(10);}, 1000);
 }
-function deleteHabit(idx) { if(confirm('Delete this habit?')) { const h = load(); h.splice(idx, 1); save(h); render(); } }
-function toggle(i) {
-  const h = load(); const d = dp.value;
-  const idx = h[i].done.indexOf(d);
-  idx >= 0 ? h[i].done.splice(idx, 1) : h[i].done.push(d);
-  save(h); render();
+function stopBreathing(){ clearInterval(bT); clearInterval(cT); }
+
+function addHabit() {
+    const i=document.getElementById('habitInput'); if(!i.value.trim())return;
+    const h=load(); h.push({name:i.value, done:[]}); save(h); i.value=''; render();
+}
+function toggle(idx) {
+    const h=load(), d=dp.value, i=h[idx].done.indexOf(d);
+    i>=0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); save(h); render();
 }
 function render() {
-  const h = load(); const d = dp.value;
-  const hl = document.getElementById('habitList'); hl.innerHTML = '';
-  document.getElementById('journal').value = localStorage.getItem('j-' + d) || '';
-  h.forEach((x, i) => {
-    const row = document.createElement('div'); row.className = 'habit';
-    row.innerHTML = `<div>${x.name}</div>
-      <div class="habit-actions">
-        <button class="del-btn" onclick="deleteHabit(${i})">✕</button>
-        <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>
-      </div>`;
-    hl.appendChild(row);
-  });
-  renderMonth(); renderGarden();
-}
-function renderMonth() {
-  const h = load(); const c = document.getElementById('monthly');
-  const sel = new Date(dp.value + 'T00:00:00');
-  const y = sel.getFullYear(), m = sel.getMonth(), days = new Date(y, m + 1, 0).getDate();
-  let t = '<table style="border-collapse: collapse;">';
-  h.forEach(x => {
-    t += '<tr>';
-    for(let d=1; d<=days; d++) {
-      const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      t += `<td><div style="width:12px; height:12px; border-radius:2px; margin:2px; background:${x.done.includes(k)?'var(--g3)':'#1e293b'}"></div></td>`;
-    }
-    t += '</tr>';
-  });
-  c.innerHTML = t + '</table>';
-}
-function renderGarden() {
-  const g = document.getElementById('garden'); g.innerHTML = '';
-  load().forEach(x => {
-    const div = document.createElement('div'); div.className = 'plant';
-    div.innerHTML = x.done.length > 10 ? '🌸' : x.done.length > 0 ? '🌱' : '🕳️';
-    g.appendChild(div);
-  });
-}
-function saveJournal() { localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Saved"); }
-function importCSV(e) {
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const habits = [];
-    ev.target.result.split('\n').slice(1).forEach(row => {
-      const p = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-      if (p.length < 3) return;
-      if (p[0].trim()==='Habit') {
-        let h = habits.find(x=>x.name===p[1].replace(/"/g,''));
-        if (!h) { h={name:p[1].replace(/"/g,''),done:[]}; habits.push(h); }
-        h.done.push(p[2].trim());
-      } else { localStorage.setItem('j-'+p[2].trim(), p[3].replace(/"/g,'')); }
+    const h=load(), d=dp.value, hl=document.getElementById('habitList'); hl.innerHTML='';
+    document.getElementById('journal').value = localStorage.getItem('j-'+d)||'';
+    h.forEach((x,i)=>{
+        const row=document.createElement('div'); row.className='habit';
+        row.innerHTML=`<div>${x.name}</div><div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div>`;
+        hl.appendChild(row);
     });
-    save(habits); render(); alert("Imported!");
-  };
-  reader.readAsText(e.target.files[0]);
+    renderGarden();
 }
-
-let tStart = 0;
-document.addEventListener('touchstart', e => tStart = e.changedTouches[0].screenX);
-document.addEventListener('touchend', e => {
-    let diff = e.changedTouches[0].screenX - tStart;
-    const main = document.getElementById('main-view'), breath = document.getElementById('breath-view');
-    if (diff > 100) { breath.classList.add('active'); main.style.transform = "translateX(100%)"; startBreathing(); }
-    if (diff < -100) { breath.classList.remove('active'); main.style.transform = "translateX(0)"; stopBreathing(); }
-});
+function renderGarden(){
+    const g=document.getElementById('garden'); g.innerHTML='';
+    load().forEach(x=>{ const d=document.createElement('div'); d.className='plant'; d.innerHTML=x.done.length>10?'🌸':x.done.length>0?'🌱':'🕳️'; g.appendChild(d); });
+}
+async function exportToICloud() {
+    let csv="Type,Name,Date,Content\n";
+    load().forEach(h=>h.done.forEach(d=>csv+=`Habit,"${h.name}",${d},DONE\n`));
+    const f=new File([new Blob([csv],{type:'text/csv'})], `MindGarden_${dp.value}.csv`,{type:'text/csv'});
+    if(navigator.share) navigator.share({files:[f]});
+}
+function saveJournal(){ localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Saved"); }
 
 dp.onchange = render;
 render();
