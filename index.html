@@ -16,24 +16,23 @@ body {
   background: var(--bg); color: #fff; overflow: hidden;
 }
 
-/* Three-Pane Wrapper */
 #screen-container {
     display: flex; width: 300%; height: 100vh;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: translateX(-33.33%); /* Start at Center (Garden) */
+    transform: translateX(-33.33%);
 }
 .view { width: 33.33%; height: 100vh; overflow-y: auto; padding: 1rem; position: relative; }
 
-/* Media View (Left) */
+/* Media View */
 #media-view { background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .track-card { 
     background: #0f172a; width: 100%; max-width: 320px; border-radius: 16px; 
     padding: 1.2rem; margin: 8px 0; border: 1px solid #1e293b; cursor: pointer;
-    display: flex; align-items: center; gap: 15px; transition: 0.2s;
+    display: flex; align-items: center; gap: 15px;
 }
 .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
 
-/* Breath View (Right) */
+/* Breath View */
 #breath-view { background: #020617; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .breath-circle {
   width: 220px; height: 220px; border: 4px solid var(--g3); border-radius: 50%;
@@ -41,7 +40,7 @@ body {
   transition: transform 4s linear;
 }
 
-/* Garden UI (Center) */
+/* Garden UI */
 .card { background: var(--card); border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid #1f2937; }
 .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f2937; }
 .check { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--g3); display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -59,21 +58,9 @@ input, textarea, button { background: #0f172a; border: 1px solid #334155; border
 <div id="screen-container">
     <div class="view" id="media-view">
         <h2 style="color: var(--accent); margin-bottom: 0.5rem;">Soundscapes</h2>
-        <p style="color: var(--muted); margin-bottom: 2rem;">← Swipe Right for Garden</p>
-        
-        <div class="track-card" onclick="playTrack('storm', this)">
-            <div style="font-size: 1.5rem;">⛈️</div>
-            <div><strong>Tropical Storm</strong><div style="font-size:0.75rem; color:var(--muted)">Storm.mp3</div></div>
-        </div>
-        <div class="track-card" onclick="playTrack('waves', this)">
-            <div style="font-size: 1.5rem;">🌊</div>
-            <div><strong>Ocean Waves</strong><div style="font-size:0.75rem; color:var(--muted)">Waves.mp3</div></div>
-        </div>
-        <div class="track-card" onclick="playTrack('forest', this)">
-            <div style="font-size: 1.5rem;">🦜</div>
-            <div><strong>Rainforest</strong><div style="font-size:0.75rem; color:var(--muted)">Rainforest.mp3</div></div>
-        </div>
-
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div>
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div>
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><strong>Rainforest</strong></div>
         <button onclick="stopAudio()" style="margin-top: 2rem; width: 100%; max-width: 320px; background: var(--red); border:none; font-weight: 700;">Stop Audio</button>
     </div>
 
@@ -84,38 +71,16 @@ input, textarea, button { background: #0f172a; border: 1px solid #334155; border
                 <input type="date" id="datePicker" style="border:none; padding:0; background:none; font-size: 0.8rem; width: auto;">
             </div>
         </div>
-        
         <div class="card"><strong>Garden</strong><div id="garden" class="garden" style="margin-top: 10px;"></div></div>
-        
         <div class="card" id="habitList"></div>
-        
-        <div class="card">
-            <div style="display:flex; gap:8px">
-                <input id="habitInput" placeholder="New habit..." style="flex:1">
-                <button class="btn-primary" onclick="addHabit()">Add</button>
-            </div>
-        </div>
-
-        <div class="card">
-            <strong>Journal</strong>
-            <textarea id="journal" style="width:100%; margin-top:10px; height:80px" placeholder="How are you feeling?"></textarea>
-            <button style="width:100%; margin-top:10px" onclick="saveJournal()">Save Entry</button>
-        </div>
-
-        <div class="card">
-            <div id="monthly" style="overflow-x: auto; margin-bottom: 1rem;"></div>
-            <div style="display:flex; gap:8px">
-                <button class="btn-outline" onclick="exportToICloud()">📥 iCloud Save</button>
-                <button class="btn-outline" onclick="document.getElementById('fileInput').click()">📤 Import</button>
-            </div>
-            <input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv">
-        </div>
+        <div class="card"><div style="display:flex; gap:8px"><input id="habitInput" placeholder="New habit..." style="flex:1"><button class="btn-primary" onclick="addHabit()">Add</button></div></div>
+        <div class="card"><strong>Journal</strong><textarea id="journal" style="width:100%; margin-top:10px; height:80px" placeholder="Write..."></textarea><button style="width:100%; margin-top:10px" onclick="saveJournal()">Save</button></div>
+        <div class="card"><div id="monthly" style="overflow-x: auto; margin-bottom: 1rem;"></div><div style="display:flex; gap:8px"><button class="btn-outline" onclick="exportToICloud()">📥 iCloud</button><button class="btn-outline" onclick="document.getElementById('fileInput').click()">📤 Import</button></div><input type="file" id="fileInput" style="display:none" onchange="importCSV(event)" accept=".csv"></div>
     </div>
 
     <div class="view" id="breath-view">
-        <p style="color: var(--muted); margin-bottom: 3rem;">Swipe Left for Garden</p>
         <div class="breath-circle" id="circle">
-            <span style="font-size:1.1rem; color:var(--g3); text-transform:uppercase; letter-spacing:1px;" id="label">Prepare</span>
+            <span style="font-size:1.1rem; color:var(--g3); text-transform:uppercase;" id="label">Prepare</span>
             <div style="font-size:3.5rem; font-weight:800;" id="count">...</div>
         </div>
         <p style="margin-top: 3rem; color: var(--muted); font-size: 0.9rem; text-align: center;">Inhale • Hold • Exhale • Hold</p>
@@ -125,9 +90,8 @@ input, textarea, button { background: #0f172a; border: 1px solid #334155; border
 <audio id="naturePlayer" loop></audio>
 
 <script>
-// --- AUDIO SYSTEM ---
 const player = document.getElementById('naturePlayer');
-let fadeInterval;
+let fadeInterval, bT;
 const tracks = { storm: 'Storm.mp3', waves: 'Waves.mp3', forest: 'Rainforest.mp3' };
 
 function playTrack(type, el) {
@@ -139,81 +103,101 @@ function playTrack(type, el) {
         document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
         el.classList.add('playing');
         let vol = 0;
-        fadeInterval = setInterval(() => {
-            if (vol < 1) { vol += 0.05; player.volume = Math.min(vol, 1); }
-            else { clearInterval(fadeInterval); }
-        }, 100);
-    }).catch(() => alert("Please tap again to enable audio."));
+        fadeInterval = setInterval(() => { if (vol < 1) { vol += 0.05; player.volume = Math.min(vol, 1); } else { clearInterval(fadeInterval); } }, 100);
+    });
 }
 
 function stopAudio() {
     clearInterval(fadeInterval);
     let vol = player.volume;
-    fadeInterval = setInterval(() => {
-        if (vol > 0.05) { vol -= 0.05; player.volume = vol; }
-        else { player.pause(); clearInterval(fadeInterval); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
-    }, 50);
+    fadeInterval = setInterval(() => { if (vol > 0.05) { vol -= 0.05; player.volume = vol; } else { player.pause(); clearInterval(fadeInterval); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); } }, 50);
 }
 
-// --- BOX BREATHING (4,3,2,1,0) ---
-let bT;
+// --- FIXED BREATHING ---
 function startBreathing() {
+    stopBreathing(); // Clear any existing
     const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
     const steps=[{t:'Inhale',s:'scale(1.3)'},{t:'Hold',s:'scale(1.3)'},{t:'Exhale',s:'scale(0.7)'},{t:'Hold',s:'scale(0.7)'}];
     let step=0, sec=4;
-    const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; if(navigator.vibrate) navigator.vibrate(120); };
+    
+    const update = () => {
+        l.innerText=steps[step].t;
+        c.style.transform=steps[step].s;
+        co.innerText = sec;
+        if(navigator.vibrate) navigator.vibrate(100);
+    };
+
     update();
-    co.innerText = sec;
     bT = setInterval(() => {
         sec--;
-        co.innerText = sec;
-        if(sec === 0) {
-            if(navigator.vibrate) navigator.vibrate(50);
-            setTimeout(() => {
-                step=(step+1)%4; sec=4; update(); co.innerText=sec;
-            }, 1000);
-        } else if(navigator.vibrate) { navigator.vibrate(15); }
+        if(sec < 0) {
+            step = (step + 1) % 4;
+            sec = 4;
+            update();
+        } else {
+            co.innerText = sec;
+            if(navigator.vibrate) navigator.vibrate(20);
+        }
     }, 1000);
 }
-function stopBreathing(){ clearInterval(bT); document.getElementById('circle').style.transform='scale(1)'; }
 
-// --- HABIT ENGINE ---
+function stopBreathing(){ clearInterval(bT); document.getElementById('count').innerText = '...'; document.getElementById('label').innerText = 'Prepare'; document.getElementById('circle').style.transform='scale(1)'; }
+
+// --- NAV ---
+let startX = 0, currentPane = 1;
+document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
+document.addEventListener('touchend', e => {
+    let diff = e.changedTouches[0].screenX - startX;
+    if (Math.abs(diff) > 60) {
+        if (diff > 0 && currentPane > 0) currentPane--;
+        else if (diff < 0 && currentPane < 2) currentPane++;
+        document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
+        if (currentPane === 2) setTimeout(startBreathing, 400); else stopBreathing();
+    }
+});
+
+// --- CORE ---
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-function addHabit() {
-    const i=document.getElementById('habitInput'); if(!i.value.trim())return;
-    const h=load(); h.push({name:i.value, done:[]}); save(h); i.value=''; render();
-}
+function addHabit() { const i=document.getElementById('habitInput'); if(!i.value.trim())return; const h=load(); h.push({name:i.value, done:[]}); save(h); i.value=''; render(); }
 function delHabit(idx) { if(confirm('Delete?')) { const h=load(); h.splice(idx,1); save(h); render(); } }
-function toggle(idx) {
-    const h=load(), d=dp.value, i=h[idx].done.indexOf(d);
-    i>=0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); save(h); render();
-}
+function toggle(idx) { const h=load(), d=dp.value, i=h[idx].done.indexOf(d); i>=0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); save(h); render(); }
+
 function render() {
-    const h=load(), d=dp.value, hl=document.getElementById('habitList'); hl.innerHTML='';
+    const h=load(), d=dp.value, hl=document.getElementById('habitList'), g=document.getElementById('garden'), mon=document.getElementById('monthly');
+    hl.innerHTML=''; g.innerHTML='';
     document.getElementById('journal').value = localStorage.getItem('j-'+d)||'';
     h.forEach((x,i)=>{
         const row=document.createElement('div'); row.className='habit';
-        row.innerHTML=`<div>${x.name}</div><div style="display:flex;align-items:center;">
-        <button class="del-btn" onclick="delHabit(${i})">✕</button>
-        <div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div></div>`;
+        row.innerHTML=`<div>${x.name}</div><div style="display:flex;align-items:center;"><button class="del-btn" onclick="delHabit(${i})">✕</button><div class="check ${x.done.includes(d)?'done':''}" onclick="toggle(${i})">${x.done.includes(d)?'✓':''}</div></div>`;
         hl.appendChild(row);
+        const p=document.createElement('div'); p.className='plant'; p.innerHTML=x.done.length>10?'🌸':x.done.length>0?'🌱':'🕳️'; g.appendChild(p);
     });
-    const g=document.getElementById('garden'); g.innerHTML='';
-    h.forEach(x=>{ const div=document.createElement('div'); div.className='plant'; div.innerHTML=x.done.length>10?'🌸':x.done.length>0?'🌱':'🕳️'; g.appendChild(div); });
+    // Render Calendar
+    const sel=new Date(d+'T00:00:00'), y=sel.getFullYear(), m=sel.getMonth(), dim=new Date(y,m+1,0).getDate();
+    let t='<table style="border-collapse:collapse;">';
+    h.forEach(habit => {
+        t+='<tr>';
+        for(let day=1; day<=dim; day++){
+            const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            t+=`<td><div style="width:10px;height:10px;border-radius:2px;margin:1px;background:${habit.done.includes(ds)?'var(--g3)':'#1e293b'}"></div></td>`;
+        }
+        t+='</tr>';
+    });
+    mon.innerHTML = h.length?t+'</table>':'';
 }
 
-// --- ICLOUD EXPORT ---
 async function exportToICloud() {
     let csv="Type,Name,Date,Content\n";
     load().forEach(h=>h.done.forEach(d=>csv+=`Habit,"${h.name}",${d},DONE\n`));
     Object.keys(localStorage).filter(k=>k.startsWith('j-')).forEach(k=>csv+=`Journal,,${k.replace('j-','')},"${localStorage.getItem(k)}"\n`);
-    const f=new File([new Blob([csv],{type:'text/csv'})], `MindGarden_${dp.value}.csv`,{type:'text/csv'});
+    const f=new File([new Blob([csv],{type:'text/csv'})], `Garden_${dp.value}.csv`,{type:'text/csv'});
     if(navigator.share) navigator.share({files:[f]});
 }
+
 function importCSV(e) {
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -231,20 +215,7 @@ function importCSV(e) {
     };
     reader.readAsText(e.target.files[0]);
 }
-function saveJournal(){ localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Journal Saved"); }
-
-// --- NAVIGATION ---
-let startX = 0, currentPane = 1;
-document.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
-document.addEventListener('touchend', e => {
-    let diff = e.changedTouches[0].screenX - startX;
-    if (Math.abs(diff) > 70) {
-        if (diff > 0 && currentPane > 0) currentPane--;
-        else if (diff < 0 && currentPane < 2) currentPane++;
-        document.getElementById('screen-container').style.transform = `translateX(-${currentPane * 33.33}%)`;
-        if (currentPane === 2) startBreathing(); else stopBreathing();
-    }
-});
+function saveJournal(){ localStorage.setItem('j-'+dp.value, document.getElementById('journal').value); alert("Saved"); }
 
 dp.onchange = render;
 render();
