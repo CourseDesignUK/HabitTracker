@@ -41,6 +41,7 @@
             height: 100%; 
             will-change: transform;
             transform: translateX(-33.333%);
+            /* Transition is managed dynamically in JS for snapping */
         }
 
         .view { 
@@ -53,7 +54,7 @@
             position: relative;
         }
 
-        /* Scene Dots Indicator */
+        /* Scene Indicator Dots */
         .nav-dots {
             position: fixed;
             bottom: calc(env(safe-area-inset-bottom) + 20px);
@@ -190,7 +191,7 @@ const dp = document.getElementById('datePicker');
 const todayStr = new Date().toISOString().slice(0, 10);
 dp.value = todayStr;
 
-/* Caffeine Logic */
+/* Caffeine Tracker */
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 function addCaffeine(val) {
     const d = dp.value;
@@ -204,7 +205,7 @@ function updateCaffeineUI() {
     document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
 }
 
-/* Habit Logic */
+/* Habit Garden */
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
@@ -285,13 +286,13 @@ function startB() {
 }
 function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Start'; }
 
-/* HIGH-PERFORMANCE SNAP LOGIC */
+/* PERFECT SNAP-TO-SCENE SWIPE LOGIC */
 const container = document.getElementById('screen-container');
 let startTouchX = 0, currentPane = 1, isDragging = false, startTime = 0, transformX = -33.333;
 
 const updateUI = (x) => {
     container.style.transform = `translateX(${x}%)`;
-    // Update dots
+    // Update active dot
     document.querySelectorAll('.dot').forEach((d, i) => {
         d.classList.toggle('active', i === currentPane);
     });
@@ -310,7 +311,7 @@ window.addEventListener('touchmove', (e) => {
     const movePercent = (diffX / window.innerWidth) * 33.333;
     transformX = (currentPane * -33.333) + movePercent;
     
-    // Rubber-band edges
+    // Rubber-band effect at edges
     if (transformX > 0) transformX /= 3; 
     if (transformX < -66.666) transformX = -66.666 + (transformX + 66.666) / 3;
 
@@ -323,18 +324,21 @@ window.addEventListener('touchend', (e) => {
     const diffX = e.changedTouches[0].clientX - startTouchX;
     const velocity = Math.abs(diffX) / (Date.now() - startTime);
 
+    // Decision Logic for Snapping
     if (Math.abs(diffX) > window.innerWidth * 0.15 || velocity > 0.3) {
         if (diffX < 0 && currentPane < 2) currentPane++;
         else if (diffX > 0 && currentPane > 0) currentPane--;
     }
 
+    // Apply Perfect Snap
     container.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
     transformX = currentPane * -33.333;
     updateUI(transformX);
+    
     if (currentPane !== 2) stopB();
 });
 
-/* Backups */
+/* Backup Management */
 function exportData() {
     const h = load();
     let csv = "Type,Item,Date,Content\n";
@@ -360,7 +364,7 @@ function importData(e) {
             }
         });
         if (h.length) save(h);
-        render(); alert("Import Complete");
+        render(); alert("Garden Restored");
     };
     reader.readAsText(e.target.files[0]);
 }
