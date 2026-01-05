@@ -74,7 +74,7 @@
             border: none; color: white; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
 
-        .track-card { background: var(--card); border-radius: 16px; padding: 1.2rem; margin: 10px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
 
         .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 12px; margin-top: 15px; }
@@ -85,14 +85,14 @@
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer;}
         .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); }
         .delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
-        .delete-btn:active { background: var(--red); color: #fff; }
 
         .breath-circle { width: 220px; height: 220px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; position: relative; cursor: pointer; }
         .breath-circle.animating::after { content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } }
 
-        .pomo-card { text-align: center; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; width: 100%; max-width: 250px;}
-        .pomo-time { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: 2px; }
+        .pomo-card { text-align: center; width: 100%; padding: 1rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .pomo-time { font-size: 3rem; font-weight: 800; letter-spacing: -1px; margin: 0.2rem 0; color: var(--accent); }
+        .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
@@ -118,13 +118,19 @@
 
 <div id="screen-container">
     <div class="view">
-        <h2 style="color: var(--accent); margin-top:0">Soundscapes</h2>
+        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2>
+        
+        <div class="pomo-card">
+            <div id="pomoPhase" class="pomo-label">Ready to Focus</div>
+            <div class="pomo-time" id="pomoDisplay">48:00</div>
+            <button id="pomoBtn" onclick="togglePomo()" style="background: var(--accent); color: var(--bg); font-weight: 700;">Start Session</button>
+        </div>
+
         <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong></div></div>
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong></div></div>
         <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong></div></div>
         <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><div><strong>Ambient</strong></div></div>
-        <div class="track-card" onclick="playTrack('birdsong', this)"><span>🐦</span><div><strong>Birdsong</strong></div></div>
-        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white; cursor:pointer">Mute</button>
+        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white; cursor:pointer">Mute Sounds</button>
     </div>
 
     <div class="view">
@@ -164,10 +170,7 @@
             <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Tap to Breathe</span>
             <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
         </div>
-        <div class="pomo-card">
-            <div class="pomo-time" id="pomoDisplay">25:00</div>
-            <button id="pomoBtn" onclick="togglePomo()" style="background: var(--accent); color: var(--bg); font-weight: 700;">Start Focus</button>
-        </div>
+        <p style="margin-top: 2rem; color: var(--muted); font-size: 0.8rem;">4-4-4-4 Box Breathing</p>
     </div>
 </div>
 
@@ -180,6 +183,51 @@ let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
+/* 48/12 TIMER LOGIC */
+let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true;
+
+function chime() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
+    osc.start(); osc.stop(ctx.currentTime + 1.5);
+}
+
+function togglePomo() {
+    const btn = document.getElementById('pomoBtn');
+    const disp = document.getElementById('pomoDisplay');
+    const label = document.getElementById('pomoPhase');
+    
+    if (isPomoRunning) {
+        clearInterval(pomoInterval);
+        isPomoRunning = false;
+        btn.innerText = "Resume";
+        btn.style.background = "var(--yellow)";
+    } else {
+        isPomoRunning = true;
+        btn.innerText = "Pause";
+        btn.style.background = var(--red);
+        
+        pomoInterval = setInterval(() => {
+            pomoTime--;
+            let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60;
+            disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            label.innerText = isWorkPhase ? "Focusing (48m)" : "Resting (12m)";
+            
+            if (pomoTime <= 0) {
+                chime();
+                isWorkPhase = !isWorkPhase;
+                pomoTime = isWorkPhase ? 2880 : 720; // 48m or 12m
+                alert(isWorkPhase ? "Time to focus!" : "Time for a break!");
+            }
+        }, 1000);
+    }
+}
+
+/* HABITS & CAFFEINE */
 function addCaffeine(val) {
     const d = dp.value;
     caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
@@ -228,10 +276,7 @@ function addHabit() {
 }
 function deleteHabit(idx) {
     const h = load();
-    if(confirm(`Are you sure you want to remove "${h[idx].name}"? This will delete all history for this habit.`)) {
-        h.splice(idx, 1);
-        save(h); render();
-    }
+    if(confirm(`Remove "${h[idx].name}" history?`)) { h.splice(idx, 1); save(h); render(); }
 }
 function renderCalendar() {
     const cal = document.getElementById('calendar');
@@ -256,10 +301,10 @@ function renderCalendar() {
     }
 }
 
-/* AUDIO & MINDFULNESS */
+/* AUDIO & BREATHING */
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = './' + t + '.mp3'; player.play().catch(() => alert("Soundscape not found."));
+    player.src = './' + t + '.mp3'; player.play().catch(() => alert("Soundscape not found. Ensure .mp3 files are in folder."));
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
 }
@@ -277,24 +322,7 @@ function startB() {
 }
 function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; }
 
-let pomoTime = 1500, pomoInterval = null, isPomoRunning = false;
-function togglePomo() {
-    if (isPomoRunning) {
-        clearInterval(pomoInterval); pomoTime = 1500;
-        document.getElementById('pomoDisplay').innerText = "25:00";
-        document.getElementById('pomoBtn').innerText = "Start Focus";
-        isPomoRunning = false;
-    } else {
-        isPomoRunning = true; document.getElementById('pomoBtn').innerText = "Reset";
-        pomoInterval = setInterval(() => {
-            pomoTime--; let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60;
-            document.getElementById('pomoDisplay').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if (pomoTime <= 0) { clearInterval(pomoInterval); alert("Focus complete!"); togglePomo(); }
-        }, 1000);
-    }
-}
-
-/* GESTURES & SNAPPING */
+/* GESTURES */
 const container = document.getElementById('screen-container');
 let startTouchX = 0, currentPane = 1, isDragging = false, startTime = 0, transformX = -33.333333;
 const updateUI = (x) => {
@@ -309,69 +337,51 @@ window.addEventListener('touchmove', (e) => {
     const diffX = e.touches[0].clientX - startTouchX;
     const movePercent = (diffX / window.innerWidth) * 33.333333;
     transformX = (currentPane * -33.333333) + movePercent;
-    if (transformX > 0) transformX /= 3; if (transformX < -66.666666) transformX = -66.666666 + (transformX + 66.666666) / 3;
     requestAnimationFrame(() => updateUI(transformX));
 }, { passive: true });
 window.addEventListener('touchend', (e) => {
     if (!isDragging) return; isDragging = false;
     const diffX = e.changedTouches[0].clientX - startTouchX;
-    const velocity = Math.abs(diffX) / (Date.now() - startTime);
-    if (Math.abs(diffX) > window.innerWidth * 0.15 || velocity > 0.3) {
+    if (Math.abs(diffX) > window.innerWidth * 0.15) {
         if (diffX < 0 && currentPane < 2) currentPane++; else if (diffX > 0 && currentPane > 0) currentPane--;
     }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     transformX = currentPane * -33.333333; updateUI(transformX);
-    if (currentPane !== 2) { stopB(); }
 });
 
-/* ROBUST BACKUP/RESTORE */
+/* BACKUP */
 function exportData() {
     const h = load();
     let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => {
-        const safeName = hab.name.replace(/"/g, '""');
-        csv += `Habit,"${safeName}",${date},DONE\n`;
-    }));
+    h.forEach(hab => hab.done.forEach(date => { csv += `Habit,"${hab.name}",${date},DONE\n`; }));
     const caf = JSON.parse(localStorage.getItem('caffeine') || '{}');
     Object.keys(caf).forEach(date => { csv += `Caffeine,,${date},${caf[date]}\n`; });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: 'text/csv' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `MindGarden_Backup_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
+    link.download = `MindGarden_Backup.csv`;
     link.click();
-    document.body.removeChild(link);
 }
 
 function importData(e) {
     const reader = new FileReader();
     reader.onload = (event) => {
-        try {
-            const lines = event.target.result.split('\n').slice(1);
-            const h = [];
-            const newCaf = JSON.parse(localStorage.getItem('caffeine') || '{}');
-            lines.forEach(line => {
-                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                if (parts.length < 3) return;
-                const type = parts[0].trim(), item = parts[1] ? parts[1].replace(/"/g, '').trim() : "", date = parts[2].trim(), content = parts[3] ? parts[3].replace(/"/g, '').trim() : "";
-                if (type === 'Habit') {
-                    let hab = h.find(x => x.name === item);
-                    if (!hab) { hab = {name: item, done:[]}; h.push(hab); }
-                    if (!hab.done.includes(date)) hab.done.push(date);
-                } else if (type === 'Caffeine') { newCaf[date] = parseInt(content) || 0; }
-            });
-            if (h.length > 0) save(h);
-            localStorage.setItem('caffeine', JSON.stringify(newCaf));
-            render(); alert("Backup Restored Successfully!");
-        } catch (err) { alert("Error parsing backup file."); }
+        const lines = event.target.result.split('\n').slice(1);
+        const h = []; const newCaf = {};
+        lines.forEach(line => {
+            const p = line.split(','); if(p.length < 3) return;
+            const type = p[0], item = p[1].replace(/"/g,''), date = p[2], content = p[3];
+            if(type==='Habit'){
+                let hab = h.find(x => x.name === item);
+                if(!hab){ hab={name:item, done:[]}; h.push(hab); }
+                hab.done.push(date);
+            } else if(type==='Caffeine') newCaf[date] = parseInt(content);
+        });
+        save(h); localStorage.setItem('caffeine', JSON.stringify(newCaf)); render();
     };
     reader.readAsText(e.target.files[0]);
 }
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Registered"));
-}
 render();
 </script>
 </body>
