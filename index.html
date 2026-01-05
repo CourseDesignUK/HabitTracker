@@ -7,8 +7,6 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -21,6 +19,7 @@
             --red: #ef4444;
             --accent: #38bdf8;
             --border: rgba(255, 255, 255, 0.1);
+            --soil-bottom: rgba(45, 26, 12, 0.4);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -33,15 +32,7 @@
             height: 100%; width: 100%;
         }
 
-        #portrait-warning {
-            display: none; position: fixed; inset: 0; background: var(--bg);
-            z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 20px;
-        }
-        @media (orientation: landscape) and (max-height: 500px) {
-            #portrait-warning { display: flex; }
-        }
-
+        /* 3-Pane Layout */
         #screen-container { 
             display: flex; width: 300%; height: 100%; 
             will-change: transform; transform: translateX(-33.333333%);
@@ -55,6 +46,7 @@
             position: relative; flex-shrink: 0;
         }
 
+        /* Navigation */
         .nav-dots {
             position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px);
             left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100;
@@ -62,53 +54,64 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; }
         .dot.active { background: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px var(--accent); }
 
+        /* UI Components */
         .card { 
             background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border);
         }
 
-        .caffeine-row { display: flex; align-items: center; justify-content: space-between; }
-        .caf-controls { display: flex; align-items: center; gap: 12px; }
-        .caf-btn { 
-            width: 44px; height: 44px; border-radius: 12px; background: #92400e; 
-            border: none; color: white; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        /* Organic Garden Styles */
+        .garden { 
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; 
+            gap: 2px; padding: 40px 15px 15px 15px;
+            background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%);
+            border-radius: 30px; min-height: 140px; transition: all 1s ease; position: relative;
+        }
+        .garden.autumn { --soil-bottom: rgba(120, 54, 10, 0.6); }
+        .garden.winter { --soil-bottom: rgba(200, 230, 255, 0.3); }
+        .garden.spring { --soil-bottom: rgba(34, 197, 94, 0.2); }
+
+        .plant { 
+            font-size: 2.5rem; margin: -10px; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: sway 5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+            z-index: 2;
+        }
+        .plant-hole {
+            width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8);
         }
 
-        .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
+        @keyframes sway { 0% { transform: rotate(-2deg); } 100% { transform: rotate(3deg); } }
 
-        .garden { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 12px; margin-top: 15px; }
-        .plant { height: 65px; background: rgba(255,255,255,0.05); border-radius: 50% 50% 15px 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; animation: sway 3s ease-in-out infinite alternate; }
-        @keyframes sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+        /* Timer Styles */
+        .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .pomo-time { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; margin: 0.2rem 0; color: var(--accent); font-variant-numeric: tabular-nums; }
+        .pomo-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
 
+        /* Habit Items */
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer;}
-        .check.done { background: var(--g-pale); color: #020617; transform: scale(1.1); }
-        .delete-btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
-
+        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer;}
+        .check.done { background: var(--g-pale); color: #020617; }
+        
+        /* General Utils */
+        input, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;}
+        .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
+        
+        /* Mindfulness Circle */
         .breath-circle { width: 220px; height: 220px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 4s linear; position: relative; cursor: pointer; }
-        .breath-circle.animating::after { content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
+        .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } }
-
-        .pomo-card { text-align: center; width: 100%; padding: 1rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-        .pomo-time { font-size: 3rem; font-weight: 800; letter-spacing: -1px; margin: 0.2rem 0; color: var(--accent); }
-        .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; }
         .cal-day.active { border: 2px solid var(--accent); color: #fff; }
-
-        input, textarea, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; width: 100%; outline: none; }
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; margin-top: 10px; cursor: pointer;}
-        .btn-outline { background: transparent; border: 1px solid var(--border); font-size: 0.8rem; padding: 10px; cursor: pointer;}
     </style>
 </head>
 <body>
-
-<div id="portrait-warning">
-    <h1>🌱</h1>
-    <p>Please rotate your device to portrait mode to tend to your garden.</p>
-</div>
 
 <div class="nav-dots">
     <div class="dot" id="dot0"></div>
@@ -119,71 +122,78 @@
 <div id="screen-container">
     <div class="view">
         <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2>
-        
         <div class="pomo-card">
-            <div id="pomoPhase" class="pomo-label">Ready to Focus</div>
+            <div id="pomoPhase" class="pomo-label">Deep Work</div>
             <div class="pomo-time" id="pomoDisplay">48:00</div>
-            <button id="pomoBtn" onclick="togglePomo()" style="background: var(--accent); color: var(--bg); font-weight: 700;">Start Session</button>
+            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent);">Start Session</button>
         </div>
-
-        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><div><strong>Tropical Storm</strong></div></div>
-        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><div><strong>Ocean Waves</strong></div></div>
-        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><div><strong>Rainforest</strong></div></div>
-        <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><div><strong>Ambient</strong></div></div>
-        <button onclick="stopAudio()" style="background:var(--red); border:none; margin-top:10px; font-weight:bold; color:white; cursor:pointer">Mute Sounds</button>
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div>
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div>
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><strong>Rainforest</strong></div>
+        <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><strong>Ambient</strong></div>
+        <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button>
     </div>
 
     <div class="view">
         <div class="card">
-            <div class="caffeine-row">
-                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups today</small></div>
-                <div class="caf-controls">
-                    <button class="caf-btn" style="background:rgba(255,255,255,0.1); font-size:1rem" onclick="addCaffeine(-1)">−</button>
-                    <span id="caffeineCount" style="font-size:1.5rem; font-weight:800; min-width:24px; text-align:center">0</span>
-                    <button class="caf-btn" onclick="addCaffeine(1)">+</button>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups</small></div>
+                <div style="display:flex; gap:10px; align-items:center">
+                    <button onclick="addCaffeine(-1)" style="width:40px; height:40px; padding:0">−</button>
+                    <span id="caffeineCount" style="font-weight:bold; font-size:1.2rem">0</span>
+                    <button onclick="addCaffeine(1)" style="width:40px; height:40px; padding:0; background:#92400e; border:none">+</button>
                 </div>
             </div>
         </div>
-        <div class="card"><strong id="gardenTitle">Garden</strong><div id="garden" class="garden"></div></div>
-        <div id="habitList" class="card"></div>
+        
         <div class="card">
-            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:12px">
-                <span id="monthLabel" style="font-weight:bold; font-size:0.9rem">Heatmap</span>
-                <input type="date" id="datePicker" style="width:auto; border:none; background:none; color:var(--accent); padding:0">
+            <strong id="gardenTitle">Your Garden</strong>
+            <div id="garden" class="garden"></div>
+        </div>
+
+        <div id="habitList" class="card"></div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px">
+                <span id="monthLabel" style="font-size:0.8rem; font-weight:bold">Heatmap</span>
+                <input type="date" id="datePicker" style="padding:0; background:none; border:none; color:var(--accent); width:auto">
             </div>
             <div id="calendar" class="calendar-grid"></div>
         </div>
+
         <div class="card">
-            <input id="habitInput" placeholder="New habit...">
+            <input id="habitInput" placeholder="Enter habit name...">
             <button class="btn-primary" onclick="addHabit()">Plant Habit</button>
         </div>
+        
         <div style="display:flex; gap:10px; margin-top:10px">
-            <button class="btn-outline" onclick="exportData()">📥 Backup</button>
-            <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 Restore</button>
-            <input type="file" id="importFile" style="display:none" onchange="importData(event)" accept=".csv">
+            <button onclick="exportData()" style="flex:1; font-size:0.8rem">📥 Backup</button>
+            <button onclick="document.getElementById('importFile').click()" style="flex:1; font-size:0.8rem">📤 Restore</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
         </div>
     </div>
 
     <div class="view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <h3 style="color: var(--g-pale); margin-bottom: 2rem;">Mindfulness</h3>
+        <h3 style="color: var(--g-pale);">Mindfulness</h3>
         <div class="breath-circle" id="circle" onclick="toggleBreathing()">
-            <span id="label" style="text-transform:uppercase; letter-spacing:2px; font-size:0.8rem; color:var(--g-pale)">Tap to Breathe</span>
+            <span id="label" style="text-transform:uppercase; font-size:0.7rem; color:var(--g-pale)">Tap to Start</span>
             <div style="font-size:4rem; font-weight:800; margin:10px 0" id="count">...</div>
         </div>
-        <p style="margin-top: 2rem; color: var(--muted); font-size: 0.8rem;">4-4-4-4 Box Breathing</p>
+        <p style="margin-top:20px; color:var(--muted); font-size:0.8rem">Box Breathing 4-4-4-4</p>
     </div>
 </div>
 
 <audio id="naturePlayer" loop></audio>
 
 <script>
+/* CORE DATA */
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 const load = () => JSON.parse(localStorage.getItem('habits') || '[]');
 const save = h => localStorage.setItem('habits', JSON.stringify(h));
 
-/* 48/12 TIMER LOGIC */
+/* 48/12 TIMER */
 let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true;
 
 function chime() {
@@ -191,7 +201,7 @@ function chime() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
     osc.start(); osc.stop(ctx.currentTime + 1.5);
 }
@@ -200,64 +210,88 @@ function togglePomo() {
     const btn = document.getElementById('pomoBtn');
     const disp = document.getElementById('pomoDisplay');
     const label = document.getElementById('pomoPhase');
-    
     if (isPomoRunning) {
         clearInterval(pomoInterval);
         isPomoRunning = false;
         btn.innerText = "Resume";
-        btn.style.background = "var(--yellow)";
     } else {
         isPomoRunning = true;
         btn.innerText = "Pause";
-        btn.style.background = var(--red);
-        
         pomoInterval = setInterval(() => {
             pomoTime--;
             let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60;
             disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             label.innerText = isWorkPhase ? "Focusing (48m)" : "Resting (12m)";
-            
             if (pomoTime <= 0) {
                 chime();
                 isWorkPhase = !isWorkPhase;
-                pomoTime = isWorkPhase ? 2880 : 720; // 48m or 12m
-                alert(isWorkPhase ? "Time to focus!" : "Time for a break!");
+                pomoTime = isWorkPhase ? 2880 : 720;
+                alert(isWorkPhase ? "Work Start!" : "Break Start!");
             }
         }, 1000);
     }
 }
 
-/* HABITS & CAFFEINE */
-function addCaffeine(val) {
-    const d = dp.value;
-    caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
-    localStorage.setItem('caffeine', JSON.stringify(caffeineData));
-    updateCaffeineUI();
+/* SEASONAL GARDEN LOGIC */
+function getPlantEmoji(name, streak, dateString) {
+    if (streak === 0) return null;
+    const month = new Date(dateString + "T12:00:00").getMonth();
+    const n = name.toLowerCase();
+    const isWinter = [11, 0, 1].includes(month);
+    const isAutumn = [8, 9, 10].includes(month);
+    const isSpring = [2, 3, 4].includes(month);
+
+    if (n.includes('run') || n.includes('gym') || n.includes('work')) {
+        if (isWinter) return streak >= 7 ? '🌲' : '❄️';
+        if (isAutumn) return streak >= 7 ? '🍂' : '🍁';
+        return streak >= 7 ? '🌳' : '🌵';
+    }
+    if (n.includes('meditate') || n.includes('yoga') || n.includes('read')) {
+        if (isWinter) return '❄️';
+        if (isSpring) return streak >= 7 ? '🌸' : '🌱';
+        return streak >= 7 ? '🌻' : '🌿';
+    }
+    return streak >= 7 ? '🎋' : '🌿';
 }
-function updateCaffeineUI() {
-    const count = caffeineData[dp.value] || 0;
-    document.getElementById('caffeineCount').innerText = count;
-    document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
+
+function updateGardenSeason(month) {
+    const g = document.getElementById('garden');
+    g.classList.remove('spring', 'autumn', 'winter');
+    if ([11, 0, 1].includes(month)) g.classList.add('winter');
+    else if ([2, 3, 4].includes(month)) g.classList.add('spring');
+    else if ([8, 9, 10].includes(month)) g.classList.add('autumn');
 }
+
 function render() {
     const h = load(), d = dp.value;
+    const month = new Date(d + "T12:00:00").getMonth();
+    updateGardenSeason(month);
+    
     const hl = document.getElementById('habitList'), g = document.getElementById('garden');
-    document.getElementById('gardenTitle').innerText = (d === dp.value) ? "Garden" : `Garden: ${d}`;
     hl.innerHTML = ''; g.innerHTML = '';
+    
     h.forEach((x, i) => {
         const s = calculateStreak(x.done, d);
         hl.innerHTML += `<div class="habit">
             <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div>
             <div style="display:flex; align-items:center; gap:12px">
-                <button class="delete-btn" onclick="deleteHabit(${i})">Delete</button>
+                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; font-size:0.7rem">Delete</button>
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div>
             </div>
         </div>`;
-        g.innerHTML += `<div class="plant">${s>=7?'🌻':s>=3?'🌿':s>=1?'🌱':'🕳️'}</div>`;
+        
+        const emoji = getPlantEmoji(x.name, s, d);
+        if (emoji) {
+            g.innerHTML += `<div class="plant" style="animation-delay:${i*0.2}s">${emoji}</div>`;
+        } else {
+            g.innerHTML += `<div class="plant-hole"></div>`;
+        }
     });
     updateCaffeineUI();
     renderCalendar();
 }
+
+/* HABIT HELPERS */
 function calculateStreak(dates, target) {
     let s = 0; let curr = new Date(target + "T12:00:00");
     while(dates.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); }
@@ -275,9 +309,23 @@ function addHabit() {
     save(h); i.value = ''; render();
 }
 function deleteHabit(idx) {
-    const h = load();
-    if(confirm(`Remove "${h[idx].name}" history?`)) { h.splice(idx, 1); save(h); render(); }
+    const h = load(); if(confirm(`Delete "${h[idx].name}"?`)) { h.splice(idx, 1); save(h); render(); }
 }
+
+/* CAFFEINE */
+function addCaffeine(val) {
+    const d = dp.value;
+    caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
+    localStorage.setItem('caffeine', JSON.stringify(caffeineData));
+    updateCaffeineUI();
+}
+function updateCaffeineUI() {
+    const count = caffeineData[dp.value] || 0;
+    document.getElementById('caffeineCount').innerText = count;
+    document.getElementById('caffeineStatus').innerText = `${count} cup${count === 1 ? '' : 's'} today`;
+}
+
+/* CALENDAR */
 function renderCalendar() {
     const cal = document.getElementById('calendar');
     const h = load(), curr = new Date(dp.value + "T12:00:00");
@@ -292,9 +340,8 @@ function renderCalendar() {
         const ratio = h.length ? (h.filter(x => x.done.includes(dStr)).length / h.length) : 0;
         const dEl = document.createElement('div');
         dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
-        if (ratio > 0.75) dEl.style.background = "var(--g-dark)";
-        else if (ratio > 0.5) { dEl.style.background = "var(--yellow)"; dEl.style.color = "#000"; }
-        else if (ratio > 0) { dEl.style.background = "var(--g-pale)"; dEl.style.color = "#000"; }
+        if (ratio > 0.5) dEl.style.background = "var(--g-dark)";
+        else if (ratio > 0) dEl.style.background = "var(--g-pale)";
         dEl.innerText = day;
         dEl.onclick = () => { dp.value = dStr; render(); };
         cal.appendChild(dEl);
@@ -304,7 +351,8 @@ function renderCalendar() {
 /* AUDIO & BREATHING */
 const player = document.getElementById('naturePlayer');
 function playTrack(t, el) { 
-    player.src = './' + t + '.mp3'; player.play().catch(() => alert("Soundscape not found. Ensure .mp3 files are in folder."));
+    player.src = './' + t + '.mp3'; 
+    player.play().catch(() => alert("Soundscape not found. Ensure .mp3 files are in folder."));
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
 }
@@ -316,72 +364,62 @@ function startB() {
     isB = true; const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
     c.classList.add('animating'); let step=0, sec=4;
     const steps=[{t:'Inhale',s:'scale(1.2)'},{t:'Hold',s:'scale(1.2)'},{t:'Exhale',s:'scale(0.8)'},{t:'Hold',s:'scale(0.8)'}];
+    l.innerText = "Inhale"; c.style.transform = "scale(1.2)";
     bT = setInterval(() => { 
         co.innerText = sec; if(sec === 0) { step=(step+1)%4; sec=4; l.innerText=steps[step].t; c.style.transform=steps[step].s; } sec--; 
     }, 1000);
 }
-function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; }
+function stopB(){ 
+    isB = false; clearInterval(bT); 
+    document.getElementById('circle').classList.remove('animating'); 
+    document.getElementById('circle').style.transform='scale(1)'; 
+    document.getElementById('count').innerText='...'; 
+    document.getElementById('label').innerText='Tap to Start'; 
+}
 
 /* GESTURES */
 const container = document.getElementById('screen-container');
-let startTouchX = 0, currentPane = 1, isDragging = false, startTime = 0, transformX = -33.333333;
-const updateUI = (x) => {
-    container.style.transform = `translateX(${x}%)`;
-    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
-};
-window.addEventListener('touchstart', (e) => {
-    startTouchX = e.touches[0].clientX; startTime = Date.now(); isDragging = true; container.style.transition = 'none';
-}, { passive: true });
+let startTouchX = 0, currentPane = 1, isDragging = false, transformX = -33.333333;
+window.addEventListener('touchstart', (e) => { startTouchX = e.touches[0].clientX; isDragging = true; container.style.transition = 'none'; }, { passive: true });
 window.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
-    const diffX = e.touches[0].clientX - startTouchX;
-    const movePercent = (diffX / window.innerWidth) * 33.333333;
-    transformX = (currentPane * -33.333333) + movePercent;
-    requestAnimationFrame(() => updateUI(transformX));
+    const diffX = (e.touches[0].clientX - startTouchX) / window.innerWidth * 33.3333;
+    container.style.transform = `translateX(${currentPane * -33.3333 + diffX}%)`;
 }, { passive: true });
 window.addEventListener('touchend', (e) => {
-    if (!isDragging) return; isDragging = false;
-    const diffX = e.changedTouches[0].clientX - startTouchX;
-    if (Math.abs(diffX) > window.innerWidth * 0.15) {
+    isDragging = false; const diffX = e.changedTouches[0].clientX - startTouchX;
+    if (Math.abs(diffX) > 50) {
         if (diffX < 0 && currentPane < 2) currentPane++; else if (diffX > 0 && currentPane > 0) currentPane--;
     }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-    transformX = currentPane * -33.333333; updateUI(transformX);
+    container.style.transform = `translateX(${currentPane * -33.3333}%)`;
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
 });
 
-/* BACKUP */
+/* DATA IO */
 function exportData() {
-    const h = load();
-    let csv = "Type,Item,Date,Content\n";
-    h.forEach(hab => hab.done.forEach(date => { csv += `Habit,"${hab.name}",${date},DONE\n`; }));
-    const caf = JSON.parse(localStorage.getItem('caffeine') || '{}');
-    Object.keys(caf).forEach(date => { csv += `Caffeine,,${date},${caf[date]}\n`; });
+    const csv = "Type,Item,Date\n" + load().map(h => h.done.map(d => `Habit,"${h.name}",${d}`).join('\n')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `MindGarden_Backup.csv`;
-    link.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'MindGarden.csv'; a.click();
 }
-
 function importData(e) {
     const reader = new FileReader();
-    reader.onload = (event) => {
-        const lines = event.target.result.split('\n').slice(1);
-        const h = []; const newCaf = {};
-        lines.forEach(line => {
-            const p = line.split(','); if(p.length < 3) return;
-            const type = p[0], item = p[1].replace(/"/g,''), date = p[2], content = p[3];
-            if(type==='Habit'){
-                let hab = h.find(x => x.name === item);
-                if(!hab){ hab={name:item, done:[]}; h.push(hab); }
-                hab.done.push(date);
-            } else if(type==='Caffeine') newCaf[date] = parseInt(content);
+    reader.onload = (ev) => {
+        const lines = ev.target.result.split('\n').slice(1);
+        const h = [];
+        lines.forEach(l => {
+            const p = l.split(','); if(p.length < 3) return;
+            const name = p[1].replace(/"/g,''), date = p[2].trim();
+            let hab = h.find(x => x.name === name);
+            if(!hab) { hab = {name, done:[]}; h.push(hab); }
+            hab.done.push(date);
         });
-        save(h); localStorage.setItem('caffeine', JSON.stringify(newCaf)); render();
+        save(h); render();
     };
     reader.readAsText(e.target.files[0]);
 }
 
+dp.onchange = render;
 render();
 </script>
 </body>
