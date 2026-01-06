@@ -57,10 +57,10 @@
             border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border);
         }
 
-        /* Garden */
+        /* Garden Styles */
         .garden { 
             display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; 
-            gap: 2px; padding: 40px 15px 15px 15px;
+            gap: 5px; padding: 40px 15px 15px 15px;
             background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%);
             border-radius: 30px; min-height: 140px; transition: all 1s ease; position: relative;
         }
@@ -69,13 +69,19 @@
         .garden.spring { --soil-bottom: rgba(34, 197, 94, 0.2); }
 
         .plant { 
-            font-size: 2.5rem; margin: -10px; 
-            animation: sway 5s ease-in-out infinite alternate;
+            font-size: 2.5rem; margin: -8px; display: inline-block;
+            animation: sway var(--sway-speed, 4s) ease-in-out infinite alternate;
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
             z-index: 2;
+            transform: scale(var(--plant-size, 1));
+            will-change: transform;
         }
         .plant-hole { width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8); }
-        @keyframes sway { 0% { transform: rotate(-2deg); } 100% { transform: rotate(3deg); } }
+        
+        @keyframes sway { 
+            0% { transform: scale(var(--plant-size, 1)) rotate(-3deg) translateX(-1px); } 
+            100% { transform: scale(var(--plant-size, 1)) rotate(4deg) translateX(1px); } 
+        }
 
         /* Timer */
         .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1rem; }
@@ -92,14 +98,12 @@
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; }
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
         
-        /* Mindfulness & Breathing Fix */
+        /* Breathing Circle */
         .breath-circle { 
-            width: 180px; height: 180px; 
-            border: 4px solid rgba(74, 222, 128, 0.3); 
-            border-radius: 50%; 
+            width: 180px; height: 180px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             position: relative; cursor: pointer;
-            transition: transform 4s linear; /* Matches the 4s breath phase */
+            transition: transform 4s linear;
             will-change: transform;
         }
         .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
@@ -190,12 +194,13 @@
 <audio id="naturePlayer" loop></audio>
 
 <script>
-/* DATA & QUOTES */
+/* --- DATA & GLOBAL --- */
+const plantPool = ['🌿', '🌵', '🌴', '🌳', '🎋', '🪴', '🍀', '🌻', '🌸', '🌼', '🍄', '🍂'];
 const stoicQuotes = [
     { text: "Waste no more time arguing what a good man should be. Be One.", author: "Marcus Aurelius" },
     { text: "The best revenge is not to be like your enemy.", author: "Marcus Aurelius" },
+    { text: "External things are not the problem. It’s your assessment of them.", author: "Marcus Aurelius" },
     { text: "We suffer more in imagination than in reality.", author: "Seneca" },
-    { text: "If a man knows not which port he sails, no wind is favorable.", author: "Seneca" },
     { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" }
 ];
 
@@ -203,33 +208,24 @@ const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 
-/* SYNTH SOUND ENGINE */
+/* --- AUDIO ENGINE --- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playBreathTone(freq) {
+function playTone(freq, dur = 2) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     gain.gain.setValueAtTime(0, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 2);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
 }
 
-/* 48/12 TIMER */
+/* --- POMODORO --- */
 let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true;
-
-function chime() {
-    playBreathTone(880);
-}
-
 function togglePomo() {
-    const btn = document.getElementById('pomoBtn');
-    const disp = document.getElementById('pomoDisplay');
-    const label = document.getElementById('pomoPhase');
+    const btn = document.getElementById('pomoBtn'), disp = document.getElementById('pomoDisplay'), label = document.getElementById('pomoPhase');
     if (isPomoRunning) {
         clearInterval(pomoInterval); isPomoRunning = false; btn.innerText = "Resume";
     } else {
@@ -240,48 +236,42 @@ function togglePomo() {
             disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             label.innerText = isWorkPhase ? "Focus (48m)" : "Rest (12m)";
             if (pomoTime <= 0) {
-                chime(); isWorkPhase = !isWorkPhase;
+                playTone(880); isWorkPhase = !isWorkPhase;
                 pomoTime = isWorkPhase ? 2880 : 720;
-                alert(isWorkPhase ? "Work Start!" : "Break Start!");
+                alert(isWorkPhase ? "Focus Session Starts!" : "Break Time!");
             }
         }, 1000);
     }
 }
 
-/* GARDEN ENGINE */
-function getPlantEmoji(name, streak, dateString) {
-    if (streak === 0) return null;
-    const month = new Date(dateString + "T12:00:00").getMonth();
-    const n = name.toLowerCase();
-    const isWinter = [11, 0, 1].includes(month);
-    const isAutumn = [8, 9, 10].includes(month);
-    const isSpring = [2, 3, 4].includes(month);
-
-    if (n.includes('run') || n.includes('gym') || n.includes('work') || n.includes('lift')) {
-        if (isWinter) return streak >= 7 ? '🌲' : '❄️';
-        if (isAutumn) return streak >= 7 ? '🍂' : '🍁';
-        return streak >= 7 ? '🌳' : '🌵';
-    }
-    if (n.includes('meditate') || n.includes('yoga') || n.includes('read') || n.includes('learn')) {
-        if (isWinter) return '❄️';
-        if (isSpring) return streak >= 7 ? '🌸' : '🌱';
-        return streak >= 7 ? '🌻' : '🌿';
-    }
-    return streak >= 7 ? '🎋' : '🌿';
+/* --- GARDEN ENGINE --- */
+function addHabit() {
+    const i = document.getElementById('habitInput'); if(!i.value.trim()) return;
+    const h = JSON.parse(localStorage.getItem('habits') || '[]');
+    h.push({
+        name: i.value.trim(), 
+        done: [],
+        dna: { 
+            emoji: plantPool[Math.floor(Math.random() * plantPool.length)],
+            size: (Math.random() * (1.2 - 0.7) + 0.7).toFixed(2),
+            speed: (Math.random() * (5 - 3) + 3).toFixed(2)
+        }
+    });
+    localStorage.setItem('habits', JSON.stringify(h)); i.value = ''; render();
 }
 
 function render() {
     const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value;
     const month = new Date(d + "T12:00:00").getMonth();
     const g = document.getElementById('garden');
-    g.classList.remove('spring', 'autumn', 'winter');
+    const hl = document.getElementById('habitList');
+    
+    g.className = 'garden';
     if ([11,0,1].includes(month)) g.classList.add('winter');
     else if ([2,3,4].includes(month)) g.classList.add('spring');
     else if ([8,9,10].includes(month)) g.classList.add('autumn');
     
-    const hl = document.getElementById('habitList');
     hl.innerHTML = ''; g.innerHTML = '';
-    
     h.forEach((x, i) => {
         let s = 0; let curr = new Date(d + "T12:00:00");
         while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); }
@@ -294,39 +284,74 @@ function render() {
             </div>
         </div>`;
         
-        const emoji = getPlantEmoji(x.name, s, d);
-        g.innerHTML += emoji ? `<div class="plant" style="animation-delay:${i*0.2}s">${emoji}</div>` : `<div class="plant-hole"></div>`;
+        if (x.done.includes(d) || s > 0) {
+            const dna = x.dna || { emoji: '🌿', size: 1, speed: 4 };
+            const p = document.createElement('div');
+            p.className = 'plant';
+            p.innerText = dna.emoji;
+            p.style.setProperty('--plant-size', dna.size);
+            p.style.setProperty('--sway-speed', dna.speed + 's');
+            p.style.animationDelay = (Math.random() * -5) + 's';
+            g.appendChild(p);
+        } else {
+            g.innerHTML += `<div class="plant-hole"></div>`;
+        }
     });
-    updateCaffeineUI();
-    renderCalendar();
+    updateCaffeineUI(); renderCalendar();
 }
 
-function updateDailyQuote() {
-    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
-    const q = stoicQuotes[dayOfYear % stoicQuotes.length];
-    document.getElementById('dailyQuote').innerText = `"${q.text}"`;
-    document.getElementById('quoteAuthor').innerText = `— ${q.author}`;
+/* --- BREATHING ENGINE --- */
+let bT, isB = false;
+function toggleBreathing() { 
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    isB ? stopB() : startB(); 
 }
 
-/* HABIT LOGIC */
+
+
+[Image of box breathing technique diagram]
+
+
+function startB() {
+    isB = true; const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count');
+    c.classList.add('animating'); 
+    let step = 0, sec = 4;
+    const steps = [
+        { t: 'Inhale', s: 'scale(1.3)', f: 440 },
+        { t: 'Hold',   s: 'scale(1.3)', f: 554 },
+        { t: 'Exhale', s: 'scale(0.8)', f: 330 },
+        { t: 'Hold',   s: 'scale(0.8)', f: 277 }
+    ];
+    l.innerText = steps[0].t; c.style.transform = steps[0].s; playTone(steps[0].f);
+    bT = setInterval(() => {
+        sec--;
+        co.innerText = sec === 0 ? 4 : sec;
+        if(sec <= 0) {
+            step = (step + 1) % 4; sec = 4;
+            l.innerText = steps[step].t; c.style.transform = steps[step].s;
+            playTone(steps[step].f);
+        }
+    }, 1000);
+}
+
+function stopB() { 
+    isB = false; clearInterval(bT); 
+    const c = document.getElementById('circle');
+    c.classList.remove('animating'); c.style.transform = 'scale(1)'; 
+    document.getElementById('count').innerText = '...'; document.getElementById('label').innerText = 'Tap to Breathe'; 
+}
+
+/* --- UTILS & DATA IO --- */
 function toggleHabit(idx) {
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value;
-    const i = h[idx].done.indexOf(d);
+    const h = JSON.parse(localStorage.getItem('habits') || '[]');
+    const d = dp.value, i = h[idx].done.indexOf(d);
     i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d);
     localStorage.setItem('habits', JSON.stringify(h)); render();
-}
-function addHabit() {
-    const i = document.getElementById('habitInput'); if(!i.value.trim()) return;
-    const h = JSON.parse(localStorage.getItem('habits') || '[]');
-    h.push({name: i.value.trim(), done: []});
-    localStorage.setItem('habits', JSON.stringify(h)); i.value = ''; render();
 }
 function deleteHabit(idx) {
     const h = JSON.parse(localStorage.getItem('habits') || '[]');
     if(confirm(`Remove "${h[idx].name}"?`)) { h.splice(idx, 1); localStorage.setItem('habits', JSON.stringify(h)); render(); }
 }
-
-/* CAFFEINE */
 function addCaffeine(val) {
     const d = dp.value; caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val);
     localStorage.setItem('caffeine', JSON.stringify(caffeineData)); updateCaffeineUI();
@@ -336,16 +361,12 @@ function updateCaffeineUI() {
     document.getElementById('caffeineCount').innerText = count;
     document.getElementById('caffeineStatus').innerText = `${count} cups today`;
 }
-
-/* CALENDAR */
 function renderCalendar() {
-    const cal = document.getElementById('calendar');
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00");
-    const month = curr.getMonth(), year = curr.getFullYear();
+    const cal = document.getElementById('calendar'), h = JSON.parse(localStorage.getItem('habits') || '[]');
+    const curr = new Date(dp.value + "T12:00:00"), month = curr.getMonth(), year = curr.getFullYear();
     document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
     cal.innerHTML = '';
-    const first = new Date(year, month, 1).getDay();
-    const total = new Date(year, month + 1, 0).getDate();
+    const first = new Date(year, month, 1).getDay(), total = new Date(year, month + 1, 0).getDate();
     for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>';
     for (let day = 1; day <= total; day++) {
         const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -353,77 +374,32 @@ function renderCalendar() {
         const dEl = document.createElement('div');
         dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`;
         if (doneCount > 0) dEl.style.background = doneCount >= h.length ? "var(--g-dark)" : "var(--g-pale)";
-        dEl.innerText = day;
-        dEl.onclick = () => { dp.value = dStr; render(); };
+        dEl.innerText = day; dEl.onclick = () => { dp.value = dStr; render(); };
         cal.appendChild(dEl);
     }
 }
-
-/* AUDIO & BREATH ENGINE */
-const player = document.getElementById('naturePlayer');
-function playTrack(t, el) { 
-    player.src = './' + t + '.mp3'; 
-    player.play().catch(() => {}); 
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); 
-    el.classList.add('playing'); 
+function exportData() {
+    const h = JSON.parse(localStorage.getItem('habits') || '[]');
+    const csv = "Type,Item,Date\n" + h.map(x => x.done.map(d => `Habit,"${x.name}",${d}`).join('\n')).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='Garden.csv'; a.click();
 }
-function stopAudio() { 
-    player.pause(); 
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); 
-}
-
-let bT, isB = false;
-function toggleBreathing() { 
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    isB ? stopB() : startB(); 
-}
-
-function startB() {
-    isB = true; 
-    const l = document.getElementById('label'), 
-          c = document.getElementById('circle'), 
-          co = document.getElementById('count');
-    
-    c.classList.add('animating'); 
-    let step = 0, sec = 4;
-    
-    const steps = [
-        { t: 'Inhale', s: 'scale(1.3)', f: 440 },
-        { t: 'Hold',   s: 'scale(1.3)', f: 554 },
-        { t: 'Exhale', s: 'scale(0.8)', f: 330 },
-        { t: 'Hold',   s: 'scale(0.8)', f: 277 }
-    ];
-
-    // Initial Trigger
-    l.innerText = steps[0].t;
-    c.style.transform = steps[0].s;
-    playBreathTone(steps[0].f);
-
-    bT = setInterval(() => {
-        sec--;
-        co.innerText = sec === 0 ? 4 : sec;
-        
-        if(sec <= 0) {
-            step = (step + 1) % 4;
-            sec = 4;
-            l.innerText = steps[step].t;
-            c.style.transform = steps[step].s;
-            playBreathTone(steps[step].f);
-        }
-    }, 1000);
+function importData(e) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+        const lines = ev.target.result.split('\n').slice(1), h = [];
+        lines.forEach(l => { 
+            const p = l.split(','); if(p.length<3)return; 
+            const name=p[1].replace(/"/g,''), date=p[2].trim(); 
+            let hab=h.find(x=>x.name===name); 
+            if(!hab){hab={name,done:[],dna:{emoji:plantPool[Math.floor(Math.random()*12)],size:1,speed:4}};h.push(hab);} 
+            hab.done.push(date); 
+        });
+        localStorage.setItem('habits', JSON.stringify(h)); render();
+    };
+    reader.readAsText(e.target.files[0]);
 }
 
-function stopB() { 
-    isB = false; 
-    clearInterval(bT); 
-    const c = document.getElementById('circle');
-    c.classList.remove('animating'); 
-    c.style.transform = 'scale(1)'; 
-    document.getElementById('count').innerText = '...'; 
-    document.getElementById('label').innerText = 'Tap to Breathe'; 
-}
-
-/* NAVIGATION */
+/* --- NAVIGATION --- */
 const container = document.getElementById('screen-container');
 let startX = 0, currentPane = 1;
 window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; container.style.transition = 'none'; }, { passive: true });
@@ -439,20 +415,15 @@ window.addEventListener('touchend', e => {
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
 });
 
-/* DATA IO */
-function exportData() {
-    const h = JSON.parse(localStorage.getItem('habits') || '[]');
-    const csv = "Type,Item,Date\n" + h.map(x => x.done.map(d => `Habit,"${x.name}",${d}`).join('\n')).join('\n');
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='GardenBackup.csv'; a.click();
-}
-function importData(e) {
-    const reader = new FileReader();
-    reader.onload = ev => {
-        const lines = ev.target.result.split('\n').slice(1); const h = [];
-        lines.forEach(l => { const p = l.split(','); if(p.length<3)return; const name=p[1].replace(/"/g,''), date=p[2].trim(); let hab=h.find(x=>x.name===name); if(!hab){hab={name,done:[]};h.push(hab);} hab.done.push(date); });
-        localStorage.setItem('habits', JSON.stringify(h)); render();
-    };
-    reader.readAsText(e.target.files[0]);
+const player = document.getElementById('naturePlayer');
+function playTrack(t, el) { player.src = `./${t}.mp3`; player.play().catch(()=>{}); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); el.classList.add('playing'); }
+function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
+
+function updateDailyQuote() {
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    const q = stoicQuotes[dayOfYear % stoicQuotes.length];
+    document.getElementById('dailyQuote').innerText = `"${q.text}"`;
+    document.getElementById('quoteAuthor').innerText = `— ${q.author}`;
 }
 
 dp.onchange = render;
