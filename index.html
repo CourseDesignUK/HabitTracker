@@ -92,8 +92,16 @@
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; }
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
         
-        /* Mindfulness */
-        .breath-circle { width: 180px; height: 180px; border: 4px solid rgba(74, 222, 128, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        /* Mindfulness & Breathing Fix */
+        .breath-circle { 
+            width: 180px; height: 180px; 
+            border: 4px solid rgba(74, 222, 128, 0.3); 
+            border-radius: 50%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; cursor: pointer;
+            transition: transform 4s linear; /* Matches the 4s breath phase */
+            will-change: transform;
+        }
         .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 50%; opacity: 0; animation: ripple 4s infinite ease-out; }
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } }
 
@@ -185,53 +193,37 @@
 /* DATA & QUOTES */
 const stoicQuotes = [
     { text: "Waste no more time arguing what a good man should be. Be One.", author: "Marcus Aurelius" },
-    { text: "Think of the life you have lived until now as over and, as a dead man, see what’s left as a bonus and live it according to Nature.", author: "Marcus Aurelius" },
-    { text: "Love the hand that fate deals you and play it as your own, for what could be more fitting?", author: "Marcus Aurelius" },
-    { text: "It never ceases to amaze me: we all love ourselves more than other people, but care more about their opinion than our own.", author: "Marcus Aurelius" },
-    { text: "In your actions, don’t procrastinate. In your conversations, don’t confuse. In your thoughts, don’t wander.", author: "Marcus Aurelius" },
-    { text: "In your soul, don’t be passive or aggressive. In your life, don’t be all about business.", author: "Marcus Aurelius" },
-    { text: "If it is not right, do not do it, if it is not true, do not say it.", author: "Marcus Aurelius" },
     { text: "The best revenge is not to be like your enemy.", author: "Marcus Aurelius" },
-    { text: "Choose not to be harmed — and you won’t feel harmed. Don’t feel harmed — and you haven’t been.", author: "Marcus Aurelius" },
-    { text: "It’s time you realized that you have something in you more powerful and miraculous than the things that affect you.", author: "Marcus Aurelius" },
-    { text: "External things are not the problem. It’s your assessment of them. Which you can erase right now.", author: "Marcus Aurelius" },
-    { text: "If anyone can refute me—show me I’m making a mistake—I’ll gladly change. It’s the truth I’m after.", author: "Marcus Aurelius" },
-    { text: "You could leave life right now. Let that determine what you do and say and think.", author: "Marcus Aurelius" },
-    { text: "Be tolerant with others and strict with yourself.", author: "Marcus Aurelius" },
-    { text: "We are more often frightened than hurt; and we suffer more in imagination than in reality.", author: "Seneca" },
+    { text: "We suffer more in imagination than in reality.", author: "Seneca" },
     { text: "If a man knows not which port he sails, no wind is favorable.", author: "Seneca" },
-    { text: "No person has the power to have everything they want, but it is in their power not to want what they don’t have.", author: "Seneca" },
-    { text: "Nothing is a better proof of a well ordered mind than a man’s ability to stop just where he is and pass some time in his own company.", author: "Seneca" },
-    { text: "He who fears death will never do anything worthy of a man who is alive.", author: "Seneca" },
-    { text: "Life is very short and anxious for those who forget the past, neglect the present, and fear the future.", author: "Seneca" },
-    { text: "I judge you unfortunate because you have never lived through misfortune. No one can ever know what you are capable of.", author: "Seneca" },
-    { text: "How does it help to make troubles heavier by bemoaning them?", author: "Seneca" },
-    { text: "People are frugal in guarding their personal property; but as soon as it comes to squandering time they are most wasteful.", author: "Seneca" },
-    { text: "How long are you going to wait before you demand the best for yourself?", author: "Epictetus" },
-    { text: "Don’t seek for everything to happen as you wish it would, but rather wish that everything happens as it actually will.", author: "Epictetus" },
-    { text: "First say to yourself what you would be; and then do what you have to do.", author: "Epictetus" },
-    { text: "Curb your desire—don’t set your heart on so many things and you will get what you need.", author: "Epictetus" },
-    { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" },
-    { text: "Identify and separate matters so that I can say clearly which are externals not under my control, and which are my own choices.", author: "Epictetus" }
+    { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" }
 ];
 
 const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}');
 
+/* SYNTH SOUND ENGINE */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBreathTone(freq) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 2);
+}
+
 /* 48/12 TIMER */
 let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true;
 
 function chime() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5);
-        osc.start(); osc.stop(ctx.currentTime + 1.5);
-    } catch(e) {}
+    playBreathTone(880);
 }
 
 function togglePomo() {
@@ -367,21 +359,69 @@ function renderCalendar() {
     }
 }
 
-/* AUDIO & BREATH */
+/* AUDIO & BREATH ENGINE */
 const player = document.getElementById('naturePlayer');
-function playTrack(t, el) { player.src = './' + t + '.mp3'; player.play().catch(() => {}); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); el.classList.add('playing'); }
-function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
+function playTrack(t, el) { 
+    player.src = './' + t + '.mp3'; 
+    player.play().catch(() => {}); 
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); 
+    el.classList.add('playing'); 
+}
+function stopAudio() { 
+    player.pause(); 
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); 
+}
 
 let bT, isB = false;
-function toggleBreathing() { isB ? stopB() : startB(); }
-function startB() {
-    isB = true; const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count');
-    c.classList.add('animating'); let step=0, sec=4;
-    const steps=[{t:'Inhale',s:'scale(1.2)'},{t:'Hold',s:'scale(1.2)'},{t:'Exhale',s:'scale(0.8)'},{t:'Hold',s:'scale(0.8)'}];
-    l.innerText = "Inhale"; c.style.transform = "scale(1.2)";
-    bT = setInterval(() => { co.innerText = sec; if(sec === 0) { step=(step+1)%4; sec=4; l.innerText=steps[step].t; c.style.transform=steps[step].s; } sec--; }, 1000);
+function toggleBreathing() { 
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    isB ? stopB() : startB(); 
 }
-function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; }
+
+function startB() {
+    isB = true; 
+    const l = document.getElementById('label'), 
+          c = document.getElementById('circle'), 
+          co = document.getElementById('count');
+    
+    c.classList.add('animating'); 
+    let step = 0, sec = 4;
+    
+    const steps = [
+        { t: 'Inhale', s: 'scale(1.3)', f: 440 },
+        { t: 'Hold',   s: 'scale(1.3)', f: 554 },
+        { t: 'Exhale', s: 'scale(0.8)', f: 330 },
+        { t: 'Hold',   s: 'scale(0.8)', f: 277 }
+    ];
+
+    // Initial Trigger
+    l.innerText = steps[0].t;
+    c.style.transform = steps[0].s;
+    playBreathTone(steps[0].f);
+
+    bT = setInterval(() => {
+        sec--;
+        co.innerText = sec === 0 ? 4 : sec;
+        
+        if(sec <= 0) {
+            step = (step + 1) % 4;
+            sec = 4;
+            l.innerText = steps[step].t;
+            c.style.transform = steps[step].s;
+            playBreathTone(steps[step].f);
+        }
+    }, 1000);
+}
+
+function stopB() { 
+    isB = false; 
+    clearInterval(bT); 
+    const c = document.getElementById('circle');
+    c.classList.remove('animating'); 
+    c.style.transform = 'scale(1)'; 
+    document.getElementById('count').innerText = '...'; 
+    document.getElementById('label').innerText = 'Tap to Breathe'; 
+}
 
 /* NAVIGATION */
 const container = document.getElementById('screen-container');
