@@ -69,10 +69,10 @@
         .garden.spring { --soil-bottom: rgba(34, 197, 94, 0.2); } 
 
         .plant {  
-            display: inline-block;
-            animation: sway 5s ease-in-out infinite alternate; 
+            display: inline-block; 
+            animation: sway 5s ease-in-out infinite alternate;  
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); 
-            z-index: 2; transform-origin: bottom center;
+            z-index: 2; transform-origin: bottom center; 
         } 
         .plant-hole { width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8); } 
         @keyframes sway { 0% { transform: rotate(-2deg) translateY(0); } 100% { transform: rotate(3deg) translateY(-2px); } } 
@@ -99,7 +99,7 @@
             border-radius: 32px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             position: relative; cursor: pointer; 
-            transition: transform 4s linear, border-radius 1s ease;
+            transition: transform 4s linear, border-radius 1s ease; 
         } 
         .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 32px; opacity: 0; animation: ripple 4s infinite ease-out; } 
         @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } } 
@@ -127,7 +127,8 @@
         </div> 
         <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div> 
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div> 
-        <div class="track-card" onclick="playTrack('forest', this)"><span>🦜</span><strong>Rainforest</strong></div> 
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🌲</span><strong>Deep Forest</strong></div> 
+        <div class="track-card" onclick="playTrack('birds', this)"><span>🐦</span><strong>Birdsong</strong></div> 
         <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><strong>Ambient</strong></div> 
         <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button> 
     </div> 
@@ -249,20 +250,19 @@ function togglePomo() {
     } 
 } 
 
-/* GARDEN ENGINE */ 
+/* GARDEN ENGINE - ALT A IMPLEMENTATION */ 
 function getPlantEmoji(name, streak, dateString) { 
     if (streak === 0) return null; 
     
-    // Growth Stages
+    // Alt A Path: 🌱 -> 🪴 -> 🍀 -> Flower/Tree
     if (streak === 1) return '🌱'; 
-    if (streak < 4) return '🌿';   
-    if (streak < 7) return '🎍';   
+    if (streak < 4) return '🪴';  
+    if (streak < 7) return '🍀';   
 
     const hash = getHash(name);
-    const floralOptions = ['🌸', '🌻', '🌷', '🌹', '💐', '🌺', '🌼'];
-    const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿', '🍃'];
+    const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
+    const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
     
-    const month = new Date(dateString + "T12:00:00").getMonth(); 
     const n = name.toLowerCase(); 
     const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work') || n.includes('lift');
 
@@ -377,11 +377,51 @@ function renderCalendar() {
     } 
 } 
 
-/* AUDIO & BREATH */ 
-const player = document.getElementById('naturePlayer'); 
-function playTrack(t, el) { player.src = 'https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3'; player.play().catch(() => {}); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); el.classList.add('playing'); } 
-function stopAudio() { player.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); } 
+/* GITHUB AUDIO ENGINE */ 
+const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
+const tracks = {
+    storm: REPO_URL + 'storm.mp3',
+    waves: REPO_URL + 'waves.mp3',
+    forest: REPO_URL + 'forest.mp3',
+    ambient: REPO_URL + 'ambient.mp3',
+    birds: REPO_URL + 'birdsong.mp3'
+};
 
+function playTrack(t, el) { 
+    const player = document.getElementById('naturePlayer');
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+
+    if (tracks[t]) {
+        player.src = tracks[t];
+        player.volume = 0;
+        player.play().then(() => {
+            // Fade-in
+            let fadeIn = setInterval(() => {
+                if (player.volume < 0.5) player.volume += 0.05;
+                else clearInterval(fadeIn);
+            }, 100);
+        }).catch(e => {
+            console.error("Audio blocked:", e);
+        });
+    }
+}
+
+function stopAudio() { 
+    const player = document.getElementById('naturePlayer');
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    
+    let fadeOut = setInterval(() => {
+        if (player.volume > 0.05) player.volume -= 0.05;
+        else {
+            player.pause();
+            player.src = "";
+            clearInterval(fadeOut);
+        }
+    }, 50);
+} 
+
+/* BOX BREATHING */ 
 let bT, isB = false; 
 function toggleBreathing() { isB ? stopB() : startB(); } 
 function startB() { 
