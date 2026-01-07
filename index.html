@@ -259,7 +259,7 @@ function getPlantEmoji(name, streak, dateString) {
     const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
     const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
     const n = name.toLowerCase(); 
-    const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work') || n.includes('lift');
+    const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work') || n.includes('Press');
     return isPhysical ? greenOptions[hash % greenOptions.length] : floralOptions[hash % floralOptions.length];
 } 
 
