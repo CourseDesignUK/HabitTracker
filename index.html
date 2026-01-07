@@ -43,6 +43,7 @@
             padding-top: calc(env(safe-area-inset-top) + 10px);  
             padding-bottom: calc(env(safe-area-inset-bottom) + 100px); 
             position: relative; flex-shrink: 0; 
+            -webkit-overflow-scrolling: touch; /* Smooth iOS scroll */
         } 
 
         .nav-dots { 
@@ -57,16 +58,12 @@
             border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); 
         } 
 
-        /* Garden */ 
         .garden {  
             display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;  
             gap: 2px; padding: 40px 15px 15px 15px; 
             background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%); 
             border-radius: 30px; min-height: 160px; transition: all 1s ease; position: relative; 
         } 
-        .garden.autumn { --soil-bottom: rgba(120, 54, 10, 0.6); } 
-        .garden.winter { --soil-bottom: rgba(200, 230, 255, 0.3); } 
-        .garden.spring { --soil-bottom: rgba(34, 197, 94, 0.2); } 
 
         .plant {  
             display: inline-block; 
@@ -77,12 +74,10 @@
         .plant-hole { width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8); } 
         @keyframes sway { 0% { transform: rotate(-2deg) translateY(0); } 100% { transform: rotate(3deg) translateY(-2px); } } 
 
-        /* Timer */ 
         .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1rem; } 
         .pomo-time { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; color: var(--accent); font-variant-numeric: tabular-nums; } 
         .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); } 
 
-        /* Habits */ 
         .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
         .check.done { background: var(--g-pale); color: #020617; } 
@@ -92,7 +87,6 @@
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
         
-        /* Mindfulness */ 
         .breath-circle { 
             width: 180px; height: 180px; 
             border: 4px solid rgba(74, 222, 128, 0.3); 
@@ -203,7 +197,6 @@ const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10); 
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
 
-/* HELPERS */
 function getHash(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -250,11 +243,9 @@ function togglePomo() {
     } 
 } 
 
-/* GARDEN ENGINE - ALT A IMPLEMENTATION */ 
+/* GARDEN LOGIC (ALT A) */ 
 function getPlantEmoji(name, streak, dateString) { 
     if (streak === 0) return null; 
-    
-    // Alt A Path: 🌱 -> 🪴 -> 🍀 -> Flower/Tree
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
     if (streak < 7) return '🍀';   
@@ -262,15 +253,9 @@ function getPlantEmoji(name, streak, dateString) {
     const hash = getHash(name);
     const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
     const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
-    
     const n = name.toLowerCase(); 
     const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work') || n.includes('lift');
-
-    if (isPhysical) {
-        return greenOptions[hash % greenOptions.length];
-    } else {
-        return floralOptions[hash % floralOptions.length];
-    }
+    return isPhysical ? greenOptions[hash % greenOptions.length] : floralOptions[hash % floralOptions.length];
 } 
 
 function render() { 
@@ -303,14 +288,7 @@ function render() {
             const size = 1.8 + (hash % 10) / 10 + 'rem';
             const shift = (hash % 15) - 7 + 'px';
             const rotate = (hash % 20) - 10 + 'deg';
-            
-            g.innerHTML += `
-                <div class="plant" style="
-                    font-size: ${size}; 
-                    margin-left: ${shift}; 
-                    transform: rotate(${rotate});
-                    animation-delay: ${i * 0.2}s;
-                ">${emoji}</div>`;
+            g.innerHTML += `<div class="plant" style="font-size:${size}; margin-left:${shift}; transform:rotate(${rotate}); animation-delay:${i * 0.2}s;">${emoji}</div>`;
         } else {
             g.innerHTML += `<div class="plant-hole"></div>`;
         }
@@ -377,7 +355,7 @@ function renderCalendar() {
     } 
 } 
 
-/* GITHUB AUDIO ENGINE */ 
+/* AUDIO - FIXED MUTE & GITHUB LINKS */ 
 const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
 const tracks = {
     storm: REPO_URL + 'storm.mp3',
@@ -386,37 +364,37 @@ const tracks = {
     ambient: REPO_URL + 'ambient.mp3',
     birds: REPO_URL + 'birdsong.mp3'
 };
+let fadeInterval;
 
 function playTrack(t, el) { 
     const player = document.getElementById('naturePlayer');
+    if (fadeInterval) clearInterval(fadeInterval);
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
-
     if (tracks[t]) {
         player.src = tracks[t];
         player.volume = 0;
         player.play().then(() => {
-            // Fade-in
-            let fadeIn = setInterval(() => {
-                if (player.volume < 0.5) player.volume += 0.05;
-                else clearInterval(fadeIn);
+            fadeInterval = setInterval(() => {
+                if (player.volume < 0.45) player.volume += 0.05;
+                else clearInterval(fadeInterval);
             }, 100);
-        }).catch(e => {
-            console.error("Audio blocked:", e);
-        });
+        }).catch(() => console.log("User interaction required"));
     }
 }
 
 function stopAudio() { 
     const player = document.getElementById('naturePlayer');
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    
-    let fadeOut = setInterval(() => {
-        if (player.volume > 0.05) player.volume -= 0.05;
-        else {
+    if (fadeInterval) clearInterval(fadeInterval);
+    fadeInterval = setInterval(() => {
+        if (player.volume > 0.05) {
+            player.volume -= 0.05;
+        } else {
             player.pause();
             player.src = "";
-            clearInterval(fadeOut);
+            player.load();
+            clearInterval(fadeInterval);
         }
     }, 50);
 } 
@@ -427,33 +405,47 @@ function toggleBreathing() { isB ? stopB() : startB(); }
 function startB() { 
     isB = true; const l=document.getElementById('label'), c=document.getElementById('circle'), co=document.getElementById('count'); 
     c.classList.add('animating'); let step=0, sec=4; 
-    const steps=[
-        {t:'Inhale',s:'scale(1.3)', r:'40%'},
-        {t:'Hold',s:'scale(1.3)', r:'40%'},
-        {t:'Exhale',s:'scale(0.8)', r:'20%'},
-        {t:'Hold',s:'scale(0.8)', r:'20%'}
-    ]; 
+    const steps=[{t:'Inhale',s:'scale(1.3)',r:'40%'},{t:'Hold',s:'scale(1.3)',r:'40%'},{t:'Exhale',s:'scale(0.8)',r:'20%'},{t:'Hold',s:'scale(0.8)',r:'20%'}]; 
     const update = () => { l.innerText=steps[step].t; c.style.transform=steps[step].s; c.style.borderRadius=steps[step].r; };
     update();
-    bT = setInterval(() => { 
-        co.innerText = sec; 
-        if(sec === 1) { step=(step+1)%4; sec=5; update(); } 
-        sec--; 
-    }, 1000); 
+    bT = setInterval(() => { co.innerText = sec; if(sec === 1) { step=(step+1)%4; sec=5; update(); } sec--; }, 1000); 
 } 
-function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('circle').style.borderRadius='32px'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; } 
+function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('circle').style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; } 
 
-/* NAVIGATION */ 
+/* NAVIGATION - FIXED ERRATIC VERTICAL SCROLL */ 
 const container = document.getElementById('screen-container'); 
-let startX = 0, currentPane = 1; 
-window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; container.style.transition = 'none'; }, { passive: true }); 
-window.addEventListener('touchmove', e => { 
-    const diff = (e.touches[0].clientX - startX) / window.innerWidth * 33.333; 
-    container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
+let startX = 0, startY = 0, currentPane = 1, isScrolling = false; 
+
+window.addEventListener('touchstart', e => { 
+    startX = e.touches[0].clientX; 
+    startY = e.touches[0].clientY; 
+    isScrolling = false; 
+    container.style.transition = 'none'; 
 }, { passive: true }); 
+
+window.addEventListener('touchmove', e => { 
+    const deltaX = e.touches[0].clientX - startX;
+    const deltaY = e.touches[0].clientY - startY;
+
+    // Lock horizontal swipe if user starts moving vertically more than 5px
+    if (!isScrolling && Math.abs(deltaY) > 5) {
+        isScrolling = true;
+    }
+
+    if (!isScrolling) {
+        const diff = (deltaX) / window.innerWidth * 33.333; 
+        container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
+    }
+}, { passive: true }); 
+
 window.addEventListener('touchend', e => { 
-    const diff = e.changedTouches[0].clientX - startX; 
-    if (Math.abs(diff) > 50) { if (diff < 0 && currentPane < 2) currentPane++; else if (diff > 0 && currentPane > 0) currentPane--; } 
+    if (!isScrolling) {
+        const diff = e.changedTouches[0].clientX - startX; 
+        if (Math.abs(diff) > 60) { 
+            if (diff < 0 && currentPane < 2) currentPane++; 
+            else if (diff > 0 && currentPane > 0) currentPane--; 
+        } 
+    }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
     container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
