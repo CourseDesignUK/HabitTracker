@@ -360,7 +360,7 @@ function renderCalendar() {
     } 
 } 
 
-/* AUDIO */ 
+/* AUDIO - ROBUST MUTE FIX */ 
 const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
 const tracks = {
     storm: REPO_URL + 'storm.mp3',
@@ -373,16 +373,23 @@ let fadeInterval;
 
 function playTrack(t, el) { 
     const player = document.getElementById('naturePlayer');
+    
+    // Clear any existing fade (in or out) before starting new track
     if (fadeInterval) clearInterval(fadeInterval);
+    
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
+
     if (tracks[t]) {
         player.src = tracks[t];
         player.volume = 0;
         player.play().then(() => {
             fadeInterval = setInterval(() => {
-                if (player.volume < 0.45) player.volume += 0.05;
-                else clearInterval(fadeInterval);
+                if (player.volume < 0.4) {
+                    player.volume = Math.min(0.45, player.volume + 0.05);
+                } else {
+                    clearInterval(fadeInterval);
+                }
             }, 100);
         }).catch(() => console.log("User interaction required"));
     }
@@ -390,19 +397,27 @@ function playTrack(t, el) {
 
 function stopAudio() { 
     const player = document.getElementById('naturePlayer');
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    
+    // 1. Immediately kill any active fade-in/out loops
     if (fadeInterval) clearInterval(fadeInterval);
+    
+    // 2. Visual feedback
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    
+    // 3. Robust Fade Out
     fadeInterval = setInterval(() => {
-        if (player.volume > 0.05) {
+        if (player.volume > 0.06) {
             player.volume -= 0.05;
         } else {
-            player.pause();
-            player.src = "";
-            player.load();
+            // 4. Hard stop and reset
             clearInterval(fadeInterval);
+            player.pause();
+            player.volume = 0;
+            player.src = ""; // Clear the source to ensure it stops loading
+            player.load();   // Force the clear
         }
     }, 50);
-} 
+}
 
 /* BOX BREATHING */ 
 let bT, isB = false; 
