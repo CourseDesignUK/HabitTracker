@@ -176,18 +176,22 @@
         </div> 
     </div> 
 
-    <div class="view" style="display: flex; flex-direction: column; align-items: center; justify-content: center;"> 
+    <div class="view" style="display: flex; flex-direction: column;"> 
         <div class="card" style="width: 100%; text-align: center; border-color: var(--accent); padding: 1.5rem;"> 
             <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Daily Reflection</div> 
             <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;">"Don't explain your philosophy. Embody it."</div> 
             <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">— Epictetus</div> 
         </div> 
 
-        <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin: 20px 0;"> 
-            <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
-            <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
-        </div> 
-        <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
+        <div style="flex: 0.2; min-height: 20px;"></div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
+                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
+                <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
+            </div> 
+            <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
+        </div>
     </div> 
 </div> 
 
@@ -199,7 +203,7 @@ const stoicQuotes = [
   { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
   { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
   { text: "Only the educated are free.", author: "Epictetus" },
-  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions.", author: "Epictetus" },
+  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions. Things not in our control are body, property, reputation, command, and, in one word, whatever are not our actions.", author: "Epictetus" },
   { text: "The greater the difficulty, the more glory in surmounting it. Skillful pilots gain their reputation from storms and tempests.", author: "Epictetus" },
   { text: "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.", author: "Epictetus" },
   { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
@@ -337,7 +341,6 @@ function getPlantEmoji(name, streak) {
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
     if (streak < 7) return '🍀';      
-
     const hash = getHash(name);
     const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
     const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
@@ -348,16 +351,12 @@ function getPlantEmoji(name, streak) {
 
 function render() { 
     const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
-    const month = new Date(d + "T12:00:00").getMonth(); 
     const g = document.getElementById('garden'); 
-    
     const hl = document.getElementById('habitList'); 
     hl.innerHTML = ''; g.innerHTML = ''; 
-    
     h.forEach((x, i) => { 
         let s = 0; let curr = new Date(d + "T12:00:00"); 
         while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); } 
-
         hl.innerHTML += `<div class="habit"> 
             <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div> 
             <div style="display:flex; align-items:center; gap:12px"> 
@@ -365,7 +364,6 @@ function render() {
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div> 
             </div> 
         </div>`; 
-        
         const emoji = getPlantEmoji(x.name, s); 
         if (emoji) {
             const hash = getHash(x.name);
@@ -417,7 +415,6 @@ function updateCaffeineUI() {
     document.getElementById('caffeineCount').innerText = count; 
     document.getElementById('caffeineStatus').innerText = `${count} cups today`; 
 } 
-
 function addAlcohol(val) { 
     const d = dp.value; alcoholData[d] = Math.max(0, (alcoholData[d] || 0) + val); 
     localStorage.setItem('alcohol', JSON.stringify(alcoholData)); updateAlcoholUI(); 
@@ -453,99 +450,66 @@ function renderCalendar() {
 /* AUDIO */ 
 const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
 const tracks = {
-    storm: REPO_URL + 'storm.mp3',
-    waves: REPO_URL + 'waves.mp3',
-    forest: REPO_URL + 'forest.mp3',
-    ambient: REPO_URL + 'ambient.mp3',
-    birds: REPO_URL + 'birdsong.mp3'
+    storm: REPO_URL + 'storm.mp3', waves: REPO_URL + 'waves.mp3',
+    forest: REPO_URL + 'forest.mp3', ambient: REPO_URL + 'ambient.mp3', birds: REPO_URL + 'birdsong.mp3'
 };
 let fadeInterval;
-
 function playTrack(t, el) { 
     const player = document.getElementById('naturePlayer');
     if (fadeInterval) clearInterval(fadeInterval);
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
-
     if (tracks[t]) {
-        player.src = tracks[t];
-        player.volume = 0;
+        player.src = tracks[t]; player.volume = 0;
         player.play().then(() => {
             fadeInterval = setInterval(() => {
-                if (player.volume < 0.4) {
-                    player.volume = Math.min(0.45, player.volume + 0.05);
-                } else {
-                    clearInterval(fadeInterval);
-                }
+                if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
+                else clearInterval(fadeInterval);
             }, 100);
         }).catch(() => console.log("User interaction required"));
     }
 }
-
 function stopAudio() { 
     const player = document.getElementById('naturePlayer');
     if (fadeInterval) clearInterval(fadeInterval);
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    player.pause();
-    player.volume = 0;
-    player.src = ""; 
-    player.load(); 
+    player.pause(); player.volume = 0; player.src = ""; player.load(); 
 }
 
 /* BOX BREATHING */ 
 let bT, isB = false; 
 function toggleBreathing() { isB ? stopB() : startB(); } 
-
 function startB() { 
     isB = true; 
-    const l = document.getElementById('label'), 
-          c = document.getElementById('circle'), 
-          co = document.getElementById('count'); 
+    const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
     c.classList.add('animating'); 
     let step = 0, sec = 4; 
     const steps = [
-        {t:'Inhale', s:'scale(1.3)', r:'40%'},
-        {t:'Hold', s:'scale(1.3)', r:'40%'},
-        {t:'Exhale', s:'scale(0.8)', r:'20%'},
-        {t:'Hold', s:'scale(0.8)', r:'20%'}
+        {t:'Inhale', s:'scale(1.3)', r:'40%'}, {t:'Hold', s:'scale(1.3)', r:'40%'},
+        {t:'Exhale', s:'scale(0.8)', r:'20%'}, {t:'Hold', s:'scale(0.8)', r:'20%'}
     ]; 
-    const updateUI = () => { 
-        l.innerText = steps[step].t; 
-        c.style.transform = steps[step].s; 
-        c.style.borderRadius = steps[step].r; 
-    };
-    updateUI();
-    co.innerText = sec;
+    const updateUI = () => { l.innerText = steps[step].t; c.style.transform = steps[step].s; c.style.borderRadius = steps[step].r; };
+    updateUI(); co.innerText = sec;
     bT = setInterval(() => { 
         sec--; 
-        if (sec < 0) {
-            step = (step + 1) % 4;
-            sec = 4; 
-            updateUI();
-        }
+        if (sec < 0) { step = (step + 1) % 4; sec = 4; updateUI(); }
         co.innerText = sec;
     }, 1000); 
 } 
-
 function stopB(){ 
-    isB = false; 
-    clearInterval(bT); 
+    isB = false; clearInterval(bT); 
     const c = document.getElementById('circle');
-    c.classList.remove('animating'); 
-    c.style.transform='scale(1)'; 
-    document.getElementById('count').innerText='...'; 
-    document.getElementById('label').innerText='Tap to Breathe'; 
+    c.classList.remove('animating'); c.style.transform='scale(1)'; 
+    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; 
 } 
 
 /* NAVIGATION */ 
 const container = document.getElementById('screen-container'); 
 let startX = 0, startY = 0, currentPane = 1, isScrolling = false, isSwiping = false; 
-
 window.addEventListener('touchstart', e => { 
     startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
     isScrolling = false; isSwiping = false; container.style.transition = 'none'; 
 }, { passive: true }); 
-
 window.addEventListener('touchmove', e => { 
     const deltaX = e.touches[0].clientX - startX;
     const deltaY = e.touches[0].clientY - startY;
@@ -559,7 +523,6 @@ window.addEventListener('touchmove', e => {
         container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
     }
 }, { passive: false }); 
-
 window.addEventListener('touchend', e => { 
     if (isSwiping) {
         const diff = e.changedTouches[0].clientX - startX; 
@@ -588,7 +551,6 @@ function importData(e) {
     }; 
     reader.readAsText(e.target.files[0]); 
 } 
-
 dp.onchange = render; 
 updateDailyQuote(); 
 render(); 
