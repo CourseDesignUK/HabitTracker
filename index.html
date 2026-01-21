@@ -1,317 +1,486 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-    <title>Task Garden</title>
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /> 
+    <title>Mind Garden</title> 
     
-    <style>
-        :root {
-            --bg: #020617;
-            --card: rgba(30, 41, 59, 0.4);
-            --muted: #94a3b8;
-            --accent: #38bdf8;
-            --green: #4ade80;
-            --yellow: #facc15; 
-            --red: #ef4444;
-            --border: rgba(255, 255, 255, 0.1);
-        }
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    <style> 
+        :root { 
+            --bg: #020617; 
+            --card: rgba(30, 41, 59, 0.5); 
+            --muted: #94a3b8; 
+            --g-pale: #4ade80; 
+            --g-dark: #166534; 
+            --yellow: #facc15;  
+            --red: #ef4444; 
+            --accent: #38bdf8; 
+            --border: rgba(255, 255, 255, 0.1); 
+            --soil-bottom: rgba(45, 26, 12, 0.4); 
+            --coffee: #92400e;
+            --wine: #4338ca;
+        } 
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } 
+        html { background: var(--bg); height: 100%; width: 100%; overflow: hidden; } 
+
+        body {  
+            margin: 0; font-family: -apple-system, system-ui, sans-serif; 
+            background: radial-gradient(circle at top right, #0f172a, #020617); 
+            color: #fff; overflow: hidden; overscroll-behavior: none;  
+            height: 100%; width: 100%; 
+        } 
+
+        #screen-container {  
+            display: flex; width: 300%; height: 100%;  
+            will-change: transform; transform: translateX(-33.333333%); 
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+        } 
+
+        .view {  
+            width: 33.333333%; height: 100%; overflow-y: auto; padding: 1.5rem;  
+            padding-top: calc(env(safe-area-inset-top) + 10px);  
+            padding-bottom: calc(env(safe-area-inset-bottom) + 100px); 
+            position: relative; flex-shrink: 0; 
+            -webkit-overflow-scrolling: touch;
+        } 
+
+        .nav-dots { 
+            position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px); 
+            left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; 
+        } 
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; } 
+        .dot.active { background: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px var(--accent); } 
+
+        .card {  
+            background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+            border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); 
+        } 
+
+        .garden {  
+            display: block; 
+            height: 240px;
+            background: linear-gradient(to bottom, transparent 30%, var(--soil-bottom) 100%); 
+            border-radius: 30px; border: 1px solid var(--border);
+            position: relative; overflow: hidden;
+            transition: filter 1s ease;
+        } 
+        .garden.thirsty { filter: grayscale(0.8) brightness(0.6); }
+
+        .plant {  
+            position: absolute;
+            bottom: 15px;
+            animation: sway 5s ease-in-out infinite alternate;  
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); 
+            z-index: 2; transform-origin: bottom center; 
+            line-height: 1;
+            white-space: nowrap;
+        } 
         
-        html, body { 
-            margin: 0; padding: 0; height: 100vh; width: 100%; 
-            background: var(--bg); color: #fff;
-            font-family: -apple-system, system-ui, sans-serif;
-            overflow: hidden;
-            height: -webkit-fill-available;
-        }
+        @keyframes sway { 0% { transform: rotate(-3deg); } 100% { transform: rotate(4deg); } } 
 
-        body { background: radial-gradient(circle at top right, #0f172a, #020617); }
+        .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1rem; } 
+        .pomo-time { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; color: var(--accent); font-variant-numeric: tabular-nums; } 
+        .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); } 
 
-        #gardenMeter {
-            position: fixed; top: 0; left: 0; height: 4px;
-            background: linear-gradient(90deg, var(--green), var(--accent));
-            transition: width 0.6s ease;
-            z-index: 1000; box-shadow: 0 0 10px var(--green);
-        }
-
-        .nav-dots {
-            position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px);
-            left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100;
-        }
-        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; }
-        .dot.active { background: var(--accent); transform: scale(1.5); }
-
-        #screen-container { 
-            display: flex; width: 400%; height: 100%; 
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .view { 
-            width: 25%; height: 100%; overflow-y: auto; padding: 1.5rem; 
-            padding-top: calc(env(safe-area-inset-top) + 40px); 
-            padding-bottom: 220px;
-        }
-
-        /* Soundscape Controls */
-        .sound-toggle {
-            background: var(--card); border: 1px solid var(--border);
-            padding: 8px 15px; border-radius: 15px; font-size: 0.8rem;
-            display: flex; align-items: center; gap: 8px; cursor: pointer;
-            width: fit-content; margin-bottom: 20px;
-        }
-        .sound-active { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px rgba(74, 222, 128, 0.2); }
-
-        /* Timer Styling */
-        .timer-display { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50%; }
-        .timer-circle {
-            width: 220px; height: 220px; border-radius: 50%;
-            border: 6px solid var(--card); display: flex; align-items: center;
-            justify-content: center; background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
-        }
-        .timer-time { font-size: 3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-
-        /* Task Cards */
-        .task-card {
-            background: var(--card); backdrop-filter: blur(12px);
-            border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem;
-            border: 1px solid var(--border); transition: 0.3s;
-        }
-        .growth-stage { font-size: 1.5rem; margin-right: 10px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
+        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
+        .check.done { background: var(--g-pale); color: #020617; } 
         
-        .slider-container { width: 100%; display: flex; align-items: center; gap: 10px; margin-top: 15px; }
-        input[type="range"] { flex: 1; -webkit-appearance: none; background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
-
-        .input-bar { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 65px); left: 1.5rem; right: 1.5rem; z-index: 10; }
-        .input-box { background: rgba(15, 23, 42, 0.95); border-radius: 20px; padding: 10px 15px; display: flex; gap: 8px; border: 1px solid var(--border); }
-        input[type="text"] { background: none; border: none; color: #fff; flex: 1; outline: none; }
-    </style>
-</head>
-<body>
-
-<div id="gardenMeter"></div>
-
-<div class="nav-dots">
-    <div class="dot active"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-</div>
-
-<div id="screen-container">
-    <div class="view">
-        <h2 style="color: var(--red)">Mindful Space</h2>
+        input, button, textarea, select { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; width: 100%; } 
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; cursor: pointer;} 
         
-        <div class="sound-toggle" id="rainBtn" onclick="toggleSound('rain')">
-            <span>🌧️</span> Rain Forest
-        </div>
-        <div class="sound-toggle" id="birdsBtn" onclick="toggleSound('birds')">
-            <span>🐦</span> Morning Birds
-        </div>
+        .life-bar-container { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 10px 0; overflow: hidden; }
+        #life-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s ease; }
 
-        <div class="timer-display">
-            <div class="timer-circle">
-                <div class="timer-time" id="timeDisplay">25:00</div>
+        .breath-circle { 
+            width: 160px; height: 160px; 
+            border: 4px solid rgba(74, 222, 128, 0.3); 
+            border-radius: 40px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; cursor: pointer; 
+            transition: transform 4s linear, border-radius 1s ease; 
+        } 
+        .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 40px; opacity: 0; animation: ripple 4s infinite ease-out; } 
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } } 
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } 
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; } 
+        .cal-day.active { border: 2px solid var(--accent); color: #fff; } 
+    </style> 
+</head> 
+<body> 
+
+<div class="nav-dots"> 
+    <div class="dot" id="dot0"></div> 
+    <div class="dot active" id="dot1"></div> 
+    <div class="dot" id="dot2"></div> 
+</div> 
+
+<div id="screen-container"> 
+    <div class="view"> 
+        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--muted); text-transform:uppercase">
+                <span>Year Progress</span>
+                <span id="year-percent">0%</span>
             </div>
-            <button onclick="toggleTimer()" style="margin-top:20px; background:var(--red); color:white; border:none; padding:12px 30px; border-radius:25px; font-weight:bold;" id="timerBtn">Start Focus</button>
+            <div class="life-bar-container"><div id="life-bar-fill"></div></div>
         </div>
-    </div>
+        <div class="pomo-card"> 
+            <div id="pomoPhase" class="pomo-label">Ready</div> 
+            <div class="pomo-time" id="pomoDisplay">48:00</div> 
+            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent); margin-top:10px">Start Session</button> 
+        </div> 
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Storm</strong></div> 
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Waves</strong></div> 
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🌲</span><strong>Forest</strong></div> 
+        <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button> 
+    </div> 
 
-    <div class="view">
-        <h2 style="color: var(--accent)">Inbox</h2>
-        <div id="inbox-list"></div>
-    </div>
+    <div class="view"> 
+        <div class="card"> 
+            <strong>Your Garden</strong> 
+            <div id="garden" class="garden"></div> 
+        </div> 
+        <div id="habitList" class="card"></div> 
+        <div class="card"> 
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
+                <div><strong>Caffeine</strong> <span id="caffeineCount" style="color:var(--accent)">0</span></div> 
+                <div style="display:flex; gap:5px"> 
+                    <button onclick="addCaffeine(-1)" style="width:35px">-</button> 
+                    <button onclick="addCaffeine(1)" style="width:35px; background:var(--coffee)">+</button> 
+                </div> 
+            </div> 
+            <div style="display:flex; justify-content:space-between; align-items:center"> 
+                <div><strong>Alcohol</strong> <span id="alcoholCount" style="color:var(--wine)">0</span></div> 
+                <div style="display:flex; gap:5px"> 
+                    <button onclick="addAlcohol(-1)" style="width:35px">-</button> 
+                    <button onclick="addAlcohol(1)" style="width:35px; background:var(--wine)">+</button> 
+                </div> 
+            </div> 
+        </div> 
+        <div class="card"> 
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px"> 
+                <span id="monthLabel" style="font-size:0.8rem; font-weight:bold">Calendar</span> 
+                <input type="date" id="datePicker" style="padding:0; background:none; border:none; color:var(--accent); width:auto"> 
+            </div> 
+            <div id="calendar" class="calendar-grid"></div> 
+        </div> 
+        <div class="card"> 
+            <input id="habitInput" placeholder="New habit..."> 
+            <button class="btn-primary" onclick="addHabit()" style="margin-top:10px">Plant Habit</button> 
+        </div> 
+    </div> 
 
-    <div class="view">
-        <h2 style="color: var(--yellow)">Today's Focus</h2>
-        <div id="focus-list"></div>
-    </div>
+    <div class="view"> 
+        <div class="card" style="text-align: center; border-color: var(--accent); min-height: 120px; display: flex; flex-direction: column; justify-content: center;"> 
+            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px;">...</div> 
+            <div id="quoteAuthor" style="font-size: 0.7rem; color: var(--muted); font-weight: bold;">...</div> 
+        </div> 
+        <div class="card">
+            <textarea id="journalArea" placeholder="Evening reflection..." style="height: 100px; resize: none; font-size: 0.85rem;" oninput="saveJournal()"></textarea>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
+            <select id="breathMode" style="margin-bottom: 10px; width: auto; font-size: 0.7rem;" onchange="stopB()">
+                <option value="box">Box (4s)</option>
+                <option value="relax">Relax (4-7-8)</option>
+                <option value="calm">Deep (6-2-7)</option>
+            </select>
+            <div class="breath-circle" id="circle" onclick="toggleBreathing()"> 
+                <span id="label" style="font-size:0.6rem; color:var(--g-pale)">RESET</span> 
+                <div style="font-size:3rem; font-weight:800;" id="count">...</div> 
+            </div> 
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px"> 
+            <button onclick="exportData()" style="font-size:0.7rem; background:none">Backup</button> 
+            <button onclick="document.getElementById('importFile').click()" style="font-size:0.7rem; background:none">Restore</button> 
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)"> 
+        </div> 
+    </div> 
+</div> 
 
-    <div class="view">
-        <h2 style="color: var(--muted)">Harvested</h2>
-        <div id="archive-list"></div>
-    </div>
-</div>
+<audio id="naturePlayer" loop></audio> 
 
-<div class="input-bar">
-    <div class="input-box">
-        <input type="text" id="taskInput" placeholder="Sow a seed..." autocomplete="off">
-        <select id="priorityInput" style="background:none; border:none; color:var(--accent); font-weight:bold; outline:none;">
-            <option value="p-low">Low</option>
-            <option value="p-mid">Mid</option>
-            <option value="p-high">High</option>
-        </select>
-        <button onclick="addTask()" style="background:var(--accent); border:none; border-radius:12px; width:40px; color:#020617; font-weight:bold;">+</button>
-    </div>
-</div>
+<script> 
+const stoicQuotes = [
+  { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
+  { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
+  { text: "Only the educated are free.", author: "Epictetus" },
+  { text: "Some things are in our control and others not. Whatever are our own actions are in our control.", author: "Epictetus" },
+  { text: "The greater the difficulty, the more glory in surmounting it.", author: "Epictetus" },
+  { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
+  { text: "People are not disturbed by things, but by the views they take of them.", author: "Epictetus" },
+  { text: "Any person capable of angering you becomes your master.", author: "Epictetus" },
+  { text: "Wealth consists not in having great possessions, but in having few wants.", author: "Epictetus" },
+  { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" },
+  { text: "If you want to improve, be content to be thought foolish and stupid.", author: "Epictetus" },
+  { text: "No man is free who is not master of himself.", author: "Epictetus" },
+  { text: "A ship should not ride on a single anchor, nor life on a single hope.", author: "Epictetus" },
+  { text: "Events do not just happen, but arrive by appointment.", author: "Epictetus" },
+  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+  { text: "The soul becomes dyed with the colour of its thoughts.", author: "Marcus Aurelius" },
+  { text: "Do not act as if you were going to live ten thousand years. Death hangs over you.", author: "Marcus Aurelius" },
+  { text: "Dwell on the beauty of life. Watch the stars, and see yourself running with them.", author: "Marcus Aurelius" },
+  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
+  { text: "If it is not right do not do it; if it is not true do not say it.", author: "Marcus Aurelius" },
+  { text: "The first rule is to keep an untroubled spirit. The second is to look things in the face.", author: "Marcus Aurelius" },
+  { text: "Very little is needed to make a happy life; it is all within yourself.", author: "Marcus Aurelius" },
+  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius" },
+  { text: "Everything we hear is an opinion, not a fact. Everything we see is a perspective, not the truth.", author: "Marcus Aurelius" },
+  { text: "Perfection of character is to live each day as if it were your last, without frenzy, without apathy.", author: "Marcus Aurelius" },
+  { text: "Be like the cliff against which the waves continually break; but it stands firm.", author: "Marcus Aurelius" },
+  { text: "A man must stand erect, not be kept erect by others.", author: "Marcus Aurelius" },
+  { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
+  { text: "Sometimes even to live is an act of courage.", author: "Seneca" },
+  { text: "Fire tests gold, suffering tests brave men.", author: "Seneca" },
+  { text: "Enjoy present pleasures in such a way as not to injure future ones.", author: "Seneca" },
+  { text: "It is not that we have so little time but that we lose so much.", author: "Seneca" },
+  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
+  { text: "If a man knows not to which port he sails, no wind is favorable.", author: "Seneca" },
+  { text: "True happiness is to enjoy the present, without anxious dependence upon the future.", author: "Seneca" },
+  { text: "All cruelty springs from weakness.", author: "Seneca" },
+  { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca" },
+  { text: "Every new beginning comes from some other beginning’s end.", author: "Seneca" },
+  { text: "To win true freedom you must be a slave to philosophy.", author: "Seneca" },
+  { text: "No man is crushed by misfortune unless he has first been deceived by prosperity.", author: "Seneca" },
+  { text: "Man conquers the world by conquering himself.", author: "Zeno of Citium" },
+  { text: "Well-being is realized by small steps, but is truly no small thing.", author: "Zeno of Citium" },
+  { text: "The goal of life is living in agreement with Nature.", author: "Zeno of Citium" },
+  { text: "We have two ears and one mouth, so we should listen more than we say.", author: "Zeno of Citium" },
+  { text: "Happiness is a good flow of life.", author: "Zeno of Citium" },
+  { text: "No loss should be more regrettable to us than losing our time, for it’s irretrievable.", author: "Zeno of Citium" },
+  { text: "The best revenge is not to be like your enemy.", author: "Marcus Aurelius" },
+  { text: "He who fears death will never do anything worthy of a man who is alive.", author: "Seneca" },
+  { text: "Life is long if you know how to use it.", author: "Seneca" },
+  { text: "The man who has anticipated the coming of troubles takes away their power.", author: "Seneca" },
+  { text: "Associate with people who are likely to improve you.", author: "Seneca" },
+  { text: "The point is not how long you live, but how nobly you live.", author: "Seneca" },
+  { text: "Small is the portion of life we really live.", author: "Seneca" },
+  { text: "Wealth is the slave of a wise man and the master of a fool.", author: "Seneca" },
+  { text: "Nothing is more honorable than a grateful heart.", author: "Seneca" },
+  { text: "If you judge, investigate; if you reign, command.", author: "Seneca" },
+  { text: "Silence is a lesson learned through life's many sufferings.", author: "Seneca" },
+  { text: "He is most powerful who has power over himself.", author: "Seneca" },
+  { text: "Humanity is the quality of a man to be a human being.", author: "Seneca" },
+  { text: "The greatest wealth is a poverty of desires.", author: "Seneca" },
+  { text: "A room without books is like a body without a soul.", author: "Seneca" },
+  { text: "A large part of progress is the desire to progress.", author: "Seneca" },
+  { text: "Every night before going to sleep, we must ask ourselves: what weakness have I overcome today?", author: "Seneca" },
+  { text: "As long as you live, keep learning how to live.", author: "Seneca" },
+  { text: "If you live in harmony with nature, you will never be poor.", author: "Seneca" },
+  { text: "Wherever there is a human being, there is an opportunity for a kindness.", author: "Seneca" },
+  { text: "True happiness is... to enjoy the present without anxious dependence upon the future.", author: "Seneca" },
+  { text: "The sun also shines on the wicked.", author: "Seneca" },
+  { text: "Fate leads the willing, and drags along the reluctant.", author: "Seneca" },
+  { text: "It is the power of the mind to be unconquerable.", author: "Seneca" },
+  { text: "The bravest sight in the world is to see a great man struggling against adversity.", author: "Seneca" },
+  { text: "Calamity is virtue's opportunity.", author: "Seneca" },
+  { text: "Ignorance is the cause of fear.", author: "Seneca" },
+  { text: "God has a fatherly mind towards good men.", author: "Seneca" },
+  { text: "To be always fortunate, and to pass through life with a step of untroubled minds, is to be ignorant of one half of nature.", author: "Seneca" },
+  { text: "Love of bustle is not industry.", author: "Seneca" },
+  { text: "Let us say what we feel, and feel what we say; let speech harmonize with life.", author: "Seneca" },
+  { text: "He who is brave is free.", author: "Seneca" },
+  { text: "You act like mortals in all that you fear, and like immortals in all that you desire.", author: "Seneca" },
+  { text: "There is no genius without a touch of madness.", author: "Seneca" }
+];
 
-<audio id="rainAudio" loop src="https://www.soundjay.com/nature/rain-01.mp3"></audio>
-<audio id="birdsAudio" loop src="https://www.soundjay.com/nature/sounds/bird-chirping-01.mp3"></audio>
+const dp = document.getElementById('datePicker'); 
+dp.value = new Date().toISOString().slice(0, 10); 
+let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
+let alcoholData = JSON.parse(localStorage.getItem('alcohol') || '{}');
+let journalData = JSON.parse(localStorage.getItem('journal') || '{}');
 
-<script>
-    let tasks = JSON.parse(localStorage.getItem('garden_tasks') || '[]');
-    let currentPane = 1; 
-    let timerSeconds = 25 * 60;
-    let timerInterval = null;
+function getHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; }
+    return Math.abs(hash);
+}
 
-    // --- Sound Logic ---
-    function toggleSound(type) {
-        const audio = document.getElementById(type + 'Audio');
-        const btn = document.getElementById(type + 'Btn');
-        
-        if (audio.paused) {
-            audio.play();
-            btn.classList.add('sound-active');
-        } else {
-            audio.pause();
-            btn.classList.remove('sound-active');
+function updateLifeProgress() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear() + 1, 0, 1);
+    const percent = ((now - start) / (end - start) * 100).toFixed(4);
+    document.getElementById('life-bar-fill').style.width = percent + '%';
+    document.getElementById('year-percent').innerText = percent + '%';
+}
+
+function saveJournal() { journalData[dp.value] = document.getElementById('journalArea').value; localStorage.setItem('journal', JSON.stringify(journalData)); }
+
+/* POMO */
+let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true; 
+function togglePomo() { 
+    if (isPomoRunning) { clearInterval(pomoInterval); isPomoRunning = false; document.getElementById('pomoBtn').innerText = "Resume"; } 
+    else { 
+        isPomoRunning = true; document.getElementById('pomoBtn').innerText = "Pause"; 
+        pomoInterval = setInterval(() => { 
+            pomoTime--; 
+            let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60; 
+            document.getElementById('pomoDisplay').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`; 
+            if (pomoTime <= 0) { isWorkPhase = !isWorkPhase; pomoTime = isWorkPhase ? 2880 : 720; alert("Phase Switch!"); } 
+        }, 1000); 
+    } 
+} 
+
+/* GARDEN */
+function getPlantEmoji(name, streak) { 
+    if (streak === 0) return null; 
+    if (streak === 1) return '🌱'; 
+    if (streak < 4) return '🪴';  
+    if (streak < 7) return '🍀';
+    const hash = getHash(name);
+    const flowers = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼', '🌳', '🌲', '🌵', '🌿'];
+    return flowers[hash % flowers.length];
+} 
+
+function render() { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
+    const g = document.getElementById('garden'), hl = document.getElementById('habitList'); 
+    hl.innerHTML = ''; g.innerHTML = ''; 
+    
+    let completedToday = 0;
+    h.forEach((x, i) => { 
+        let streak = 0; let curr = new Date(d + "T12:00:00"); 
+        while(x.done.includes(curr.toISOString().slice(0,10))) { streak++; curr.setDate(curr.getDate()-1); } 
+        if (x.done.includes(d)) completedToday++;
+
+        hl.innerHTML += `<div class="habit"> 
+            <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${streak}d</small></div> 
+            <div style="display:flex; gap:8px">
+                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; width:auto; font-size:0.7rem">Del</button>
+                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div> 
+            </div>
+        </div>`; 
+
+        const emoji = getPlantEmoji(x.name, streak); 
+        if (emoji) {
+            const hash = getHash(x.name);
+            // Growth Logic: 2% per day after 7 days
+            const growthBonus = streak > 7 ? (streak - 7) * 0.02 : 0;
+            const finalSize = (1.8 + (hash % 10) / 10) * (1 + growthBonus);
+            
+            const leftPos = (hash % 80) + 10;
+            const bottomPos = (hash % 20);
+            const zIndex = Math.floor(hash % 15);
+
+            g.innerHTML += `<div class="plant" style="font-size:${finalSize}rem; left:${leftPos}%; bottom:${bottomPos}px; z-index:${zIndex}; animation-delay:${(hash % 20) / 10}s;">${emoji}</div>`;
         }
-    }
+    }); 
 
-    // --- Timer Logic ---
-    function toggleTimer() {
-        const btn = document.getElementById('timerBtn');
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            btn.innerText = 'Resume';
-        } else {
-            btn.innerText = 'Pause';
-            timerInterval = setInterval(() => {
-                timerSeconds--;
-                updateTimerDisplay();
-                if (timerSeconds <= 0) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    alert("Focus complete!");
-                }
-            }, 1000);
-        }
-    }
+    g.classList.toggle('thirsty', completedToday === 0 && h.length > 0);
+    document.getElementById('journalArea').value = journalData[d] || '';
+    document.getElementById('caffeineCount').innerText = caffeineData[d] || 0;
+    document.getElementById('alcoholCount').innerText = alcoholData[d] || 0;
+    renderCalendar(); updateDailyQuote();
+} 
 
-    function updateTimerDisplay() {
-        const mins = Math.floor(timerSeconds / 60);
-        const secs = timerSeconds % 60;
-        document.getElementById('timeDisplay').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+function toggleHabit(idx) { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
+    const i = h[idx].done.indexOf(d); 
+    i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); 
+    localStorage.setItem('habits', JSON.stringify(h)); render(); 
+} 
+function addHabit() { 
+    const i = document.getElementById('habitInput'); if(!i.value.trim()) return; 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
+    h.push({name: i.value.trim(), done: []}); 
+    localStorage.setItem('habits', JSON.stringify(h)); i.value = ''; render(); 
+} 
+function deleteHabit(idx) { const h = JSON.parse(localStorage.getItem('habits') || '[]'); if(confirm('Remove?')) { h.splice(idx, 1); localStorage.setItem('habits', JSON.stringify(h)); render(); } }
 
-    // --- Task Logic ---
-    function getGrowthEmoji(prog) {
-        if (prog === 0) return '🌱';
-        if (prog < 30) return '🌿';
-        if (prog < 60) return '🪴';
-        if (prog < 100) return '🌻';
-        return '🌳';
-    }
+function addCaffeine(v) { caffeineData[dp.value] = Math.max(0, (caffeineData[dp.value] || 0) + v); localStorage.setItem('caffeine', JSON.stringify(caffeineData)); render(); }
+function addAlcohol(v) { alcoholData[dp.value] = Math.max(0, (alcoholData[dp.value] || 0) + v); localStorage.setItem('alcohol', JSON.stringify(alcoholData)); render(); }
 
-    function save() {
-        localStorage.setItem('garden_tasks', JSON.stringify(tasks));
-        updateGardenGrowth();
-        render();
-    }
+function renderCalendar() { 
+    const cal = document.getElementById('calendar'), h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00"); 
+    const month = curr.getMonth(), year = curr.getFullYear(); 
+    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long' }); 
+    cal.innerHTML = ''; 
+    const first = new Date(year, month, 1).getDay(), total = new Date(year, month + 1, 0).getDate(); 
+    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>'; 
+    for (let day = 1; day <= total; day++) { 
+        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; 
+        const done = h.filter(x => x.done.includes(dStr)).length; 
+        const dEl = document.createElement('div'); 
+        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`; 
+        if (done > 0) dEl.style.background = done >= h.length ? "var(--g-dark)" : "var(--g-pale)"; 
+        dEl.innerText = day; dEl.onclick = () => { dp.value = dStr; render(); }; 
+        cal.appendChild(dEl); 
+    } 
+} 
 
-    function addTask() {
-        const input = document.getElementById('taskInput');
-        if (!input.value.trim()) return;
-        tasks.push({
-            id: Date.now(),
-            text: input.value,
-            priority: document.getElementById('priorityInput').value,
-            progress: 0,
-            done: false,
-            focus: currentPane === 2
-        });
-        input.value = '';
-        save();
-    }
+function updateDailyQuote() { 
+    const day = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); 
+    const q = stoicQuotes[day % stoicQuotes.length]; 
+    document.getElementById('dailyQuote').innerText = `"${q.text}"`; 
+    document.getElementById('quoteAuthor').innerText = `— ${q.author}`; 
+}
 
-    function updateProgress(id, val) {
-        const task = tasks.find(t => t.id === id);
-        task.progress = parseInt(val);
-        task.done = (task.progress === 100);
-        save();
-    }
-
-    function render() {
-        const lists = { inbox: document.getElementById('inbox-list'), focus: document.getElementById('focus-list'), archive: document.getElementById('archive-list') };
-        Object.values(lists).forEach(l => l.innerHTML = '');
-
-        const weights = { 'p-high': 1, 'p-mid': 2, 'p-low': 3 };
-        const sorted = [...tasks].sort((a,b) => weights[a.priority] - weights[b.priority]);
-
-        sorted.forEach(t => {
-            const card = document.createElement('div');
-            card.className = 'task-card';
-            card.innerHTML = `
-                <div style="display:flex; align-items:center;">
-                    <span class="growth-stage" style="transform: scale(${0.8 + (t.progress/200)})">${getGrowthEmoji(t.progress)}</span>
-                    <div style="flex:1; ${t.done ? 'opacity:0.5; text-decoration:line-through;' : ''}">
-                        <div style="font-weight:600; font-size:0.9rem">${t.text}</div>
-                    </div>
-                    <button onclick="deleteTask(${t.id})" style="background:none; border:none; color:var(--red); font-size:1.2rem;">&times;</button>
-                </div>
-                <div class="slider-container">
-                    <input type="range" value="${t.progress}" oninput="updateProgress(${t.id}, this.value)">
-                    <span style="font-size:0.7rem; color:var(--muted); width:30px;">${t.progress}%</span>
-                </div>
-            `;
-            if (t.done) lists.archive.appendChild(card);
-            else if (t.focus) lists.focus.appendChild(card);
-            else lists.inbox.appendChild(card);
-        });
-    }
-
-    function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        save();
-    }
-
-    function updateGardenGrowth() {
-        const avg = tasks.length ? tasks.reduce((a,b) => a + b.progress, 0) / tasks.length : 0;
-        document.getElementById('gardenMeter').style.width = `${avg}%`;
-    }
-
-    // --- 4-Pane Swipe System ---
-    const container = document.getElementById('screen-container');
-    let startX = 0, isDragging = false;
-
-    container.ontouchstart = (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.type === 'range' || e.target.classList.contains('sound-toggle')) return;
-        isDragging = true;
-        startX = e.touches[0].pageX;
-        container.style.transition = 'none';
+/* BREATHING */
+let bT, isB = false; 
+function toggleBreathing() { isB ? stopB() : startB(); } 
+function startB() { 
+    isB = true; 
+    const mode = document.getElementById('breathMode').value;
+    const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
+    c.classList.add('animating'); 
+    let configs = {
+        box: [{t:'Inhale', s:1.3, d:4}, {t:'Hold', s:1.3, d:4}, {t:'Exhale', s:0.8, d:4}, {t:'Hold', s:0.8, d:4}],
+        relax: [{t:'Inhale', s:1.2, d:4}, {t:'Hold', s:1.2, d:7}, {t:'Exhale', s:0.8, d:8}],
+        calm: [{t:'Inhale', s:1.2, d:6}, {t:'Hold', s:1.2, d:2}, {t:'Exhale', s:0.8, d:7}]
     };
+    let step = 0, sec = configs[mode][0].d; 
+    const updateUI = () => { l.innerText = configs[mode][step].t; c.style.transform = `scale(${configs[mode][step].s})`; co.innerText = sec; };
+    updateUI();
+    bT = setInterval(() => { 
+        sec--; 
+        if (sec < 0) { step = (step + 1) % configs[mode].length; sec = configs[mode][step].d; updateUI(); }
+        co.innerText = sec;
+    }, 1000); 
+} 
+function stopB(){ isB = false; clearInterval(bT); document.getElementById('circle').classList.remove('animating'); document.getElementById('count').innerText='...'; } 
 
-    window.ontouchmove = (e) => {
-        if (!isDragging) return;
-        const diff = e.touches[0].pageX - startX;
-        const move = (currentPane * -25) + (diff / window.innerWidth * 25);
-        container.style.transform = `translateX(${move}%)`;
-    };
+/* NAVIGATION */
+const container = document.getElementById('screen-container'); 
+let startX = 0, currentPane = 1; 
+window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; container.style.transition = 'none'; }, { passive: true }); 
+window.addEventListener('touchend', e => { 
+    const diff = e.changedTouches[0].clientX - startX; 
+    if (Math.abs(diff) > 50) { if (diff < 0 && currentPane < 2) currentPane++; else if (diff > 0 && currentPane > 0) currentPane--; }
+    container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
+    container.style.transform = `translateX(${currentPane * -33.333333}%)`; 
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
+}); 
 
-    window.ontouchend = (e) => {
-        if (!isDragging) return;
-        isDragging = false;
-        const diff = e.changedTouches[0].pageX - startX;
-        if (Math.abs(diff) > 50) {
-            if (diff < 0 && currentPane < 3) currentPane++;
-            else if (diff > 0 && currentPane > 0) currentPane--;
-        }
-        updateLayout();
-    };
+const REPO = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
+function playTrack(t, el) { 
+    const p = document.getElementById('naturePlayer');
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing'); p.src = REPO + t + '.mp3'; p.play();
+}
+function stopAudio() { document.getElementById('naturePlayer').pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
 
-    function updateLayout() {
-        container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-        container.style.transform = `translateX(${currentPane * -25}%)`;
-        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
-    }
+function exportData() { 
+    const d = {h: JSON.parse(localStorage.getItem('habits') || '[]'), caffeineData, alcoholData, journalData};
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], {type:'application/json'})); a.download='MindGarden.json'; a.click(); 
+} 
+function importData(e) { 
+    const r = new FileReader(); r.onload = ev => { 
+        const d = JSON.parse(ev.target.result); 
+        localStorage.setItem('habits', JSON.stringify(d.h));
+        localStorage.setItem('journal', JSON.stringify(d.journalData || {}));
+        caffeineData = d.caffeineData || {}; alcoholData = d.alcoholData || {};
+        render(); 
+    }; r.readAsText(e.target.files[0]); 
+} 
 
-    document.getElementById('taskInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
-
-    updateLayout();
-    save();
-</script>
-</body>
+updateLifeProgress(); setInterval(updateLifeProgress, 10000);
+render(); 
+</script> 
+</body> 
 </html>
