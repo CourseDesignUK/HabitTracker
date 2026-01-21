@@ -66,6 +66,8 @@
             background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%); 
             border-radius: 30px; min-height: 160px; transition: all 1s ease; position: relative; 
         } 
+        .garden.thirsty { filter: grayscale(0.8) brightness(0.7); }
+        .garden.thirsty::after { content: 'Needs Water 💧'; position: absolute; top: 10px; font-size: 0.65rem; color: var(--accent); opacity: 0.8; font-weight: bold; }
 
         .plant {  
             display: inline-block; 
@@ -84,11 +86,14 @@
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
         .check.done { background: var(--g-pale); color: #020617; } 
         
-        input, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;} 
+        input, button, textarea, select { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; width: 100%; } 
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; cursor: pointer;} 
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
         
+        .life-bar-container { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 10px 0; overflow: hidden; }
+        #life-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s ease; }
+
         .breath-circle { 
             width: 180px; height: 180px; 
             border: 4px solid rgba(74, 222, 128, 0.3); 
@@ -116,6 +121,15 @@
 <div id="screen-container"> 
     <div class="view"> 
         <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
+        
+        <div class="card" style="padding: 10px 1.2rem;">
+            <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--muted); text-transform:uppercase">
+                <span>Year Progress</span>
+                <span id="year-percent">0%</span>
+            </div>
+            <div class="life-bar-container"><div id="life-bar-fill"></div></div>
+        </div>
+
         <div class="pomo-card"> 
             <div id="pomoPhase" class="pomo-label">Ready</div> 
             <div class="pomo-time" id="pomoDisplay">48:00</div> 
@@ -125,7 +139,6 @@
         <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div> 
         <div class="track-card" onclick="playTrack('forest', this)"><span>🌲</span><strong>Deep Forest</strong></div> 
         <div class="track-card" onclick="playTrack('birds', this)"><span>🐦</span><strong>Birdsong</strong></div> 
-        <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><strong>Ambient</strong></div> 
         <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button> 
     </div> 
 
@@ -168,42 +181,48 @@
             <input id="habitInput" placeholder="Enter habit name..."> 
             <button class="btn-primary" onclick="addHabit()" style="margin-top:10px">Plant Habit</button> 
         </div> 
-        
-        <div style="display:flex; gap:10px; margin-top:10px"> 
-            <button onclick="exportData()" style="flex:1; font-size:0.7rem">📥 Backup</button> 
-            <button onclick="document.getElementById('importFile').click()" style="flex:1; font-size:0.7rem">📤 Restore</button> 
-            <input type="file" id="importFile" style="display:none" onchange="importData(event)"> 
-        </div> 
     </div> 
 
     <div class="view" style="display: flex; flex-direction: column;"> 
         <div class="card" style="width: 100%; text-align: center; border-color: var(--accent); padding: 1.5rem;"> 
             <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Daily Reflection</div> 
-            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;">"Don't explain your philosophy. Embody it."</div> 
-            <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">— Epictetus</div> 
+            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;">...</div> 
+            <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">...</div> 
         </div> 
 
-        <div style="flex: 0.2; min-height: 20px;"></div>
+        <div class="card">
+            <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--muted); margin-bottom: 8px;">Evening Journal</div>
+            <textarea id="journalArea" placeholder="What did I do well? What can I improve?" style="height: 100px; resize: none; font-size: 0.85rem;" oninput="saveJournal()"></textarea>
+        </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 10px;">
+            <select id="breathMode" style="margin-bottom: 15px; width: auto; font-size: 0.7rem; padding: 5px 15px;" onchange="stopB()">
+                <option value="box">Box (4-4-4-4)</option>
+                <option value="relax">Relax (4-7-8)</option>
+                <option value="calm">Deep (6-2-7)</option>
+            </select>
             <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
                 <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
                 <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
             </div> 
-            <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
         </div>
+        
+        <div style="display:flex; gap:10px; margin-top:auto"> 
+            <button onclick="exportData()" style="flex:1; font-size:0.7rem; background:none">📥 Backup</button> 
+            <button onclick="document.getElementById('importFile').click()" style="flex:1; font-size:0.7rem; background:none">📤 Restore</button> 
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)"> 
+        </div> 
     </div> 
 </div> 
 
 <audio id="naturePlayer" loop></audio> 
 
 <script> 
-/* DATA & QUOTES */ 
 const stoicQuotes = [
   { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
   { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
   { text: "Only the educated are free.", author: "Epictetus" },
-  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions. Things not in our control are body, property, reputation, command, and, in one word, whatever are not our actions.", author: "Epictetus" },
+  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions.", author: "Epictetus" },
   { text: "The greater the difficulty, the more glory in surmounting it. Skillful pilots gain their reputation from storms and tempests.", author: "Epictetus" },
   { text: "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.", author: "Epictetus" },
   { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
@@ -217,7 +236,7 @@ const stoicQuotes = [
   { text: "If you want to improve, be content to be thought foolish and stupid.", author: "Epictetus" },
   { text: "The key is to keep company only with people who uplift you, whose presence calls forth your best.", author: "Epictetus" },
   { text: "If you would be a reader, read; if a writer, write.", author: "Epictetus" },
-  { text: "God has entrusted me with myself. No man is free who is not master of himself. A man should so live that his happiness shall depend as little as possible on external things. The world turns aside to let any man pass who knows where he is going.", author: "Epictetus" },
+  { text: "God has entrusted me with myself. No man is free who is not master of himself.", author: "Epictetus" },
   { text: "Remember, it is not enough to be hit or insulted to be harmed, you must believe that you are being harmed.", author: "Epictetus" },
   { text: "A ship should not ride on a single anchor, nor life on a single hope.", author: "Epictetus" },
   { text: "Demand not that things happen as you wish, but wish them to happen as they do, and you will go on well.", author: "Epictetus" },
@@ -278,9 +297,7 @@ const stoicQuotes = [
   { text: "Nothing is more hostile to a firm grasp on knowledge than self-deception.", author: "Zeno of Citium" },
   { text: "The goal of life is living in agreement with Nature.", author: "Zeno of Citium" },
   { text: "We have two ears and one mouth, so we should listen more than we say.", author: "Zeno of Citium" },
-  { text: "If you lay violent hands on me, you’ll have my body, but my mind will remain with Stilpo.", author: "Zeno of Citium" },
   { text: "Happiness is a good flow of life.", author: "Zeno of Citium" },
-  { text: "A bad feeling is a commotion of the mind repugnant to reason, and against nature.", author: "Zeno of Citium" },
   { text: "No loss should be more regrettable to us than losing our time, for it’s irretrievable.", author: "Zeno of Citium" }
 ];
 
@@ -288,96 +305,89 @@ const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10); 
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
 let alcoholData = JSON.parse(localStorage.getItem('alcohol') || '{}');
+let journalData = JSON.parse(localStorage.getItem('journal') || '{}');
 
 function getHash(str) {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0; 
-    }
+    for (let i = 0; i < str.length; i++) { hash = ((hash << 5) - hash) + str.charCodeAt(i); hash |= 0; }
     return Math.abs(hash);
 }
 
-/* 48/12 TIMER */ 
+/* LIFE PROGRESS */
+function updateLifeProgress() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 1);
+    const end = new Date(now.getFullYear() + 1, 0, 1);
+    const percent = ((now - start) / (end - start) * 100).toFixed(4);
+    document.getElementById('life-bar-fill').style.width = percent + '%';
+    document.getElementById('year-percent').innerText = percent + '%';
+}
+
+/* JOURNAL */
+function saveJournal() {
+    journalData[dp.value] = document.getElementById('journalArea').value;
+    localStorage.setItem('journal', JSON.stringify(journalData));
+}
+
+/* POMO */
 let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true; 
-
-function chime() { 
-    try { 
-        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-        const osc = ctx.createOscillator(); 
-        const gain = ctx.createGain(); 
-        osc.connect(gain); gain.connect(ctx.destination); 
-        osc.frequency.setValueAtTime(880, ctx.currentTime); 
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5); 
-        osc.start(); osc.stop(ctx.currentTime + 1.5); 
-    } catch(e) {} 
-} 
-
 function togglePomo() { 
-    const btn = document.getElementById('pomoBtn'); 
-    const disp = document.getElementById('pomoDisplay'); 
-    const label = document.getElementById('pomoPhase'); 
-    if (isPomoRunning) { 
-        clearInterval(pomoInterval); isPomoRunning = false; btn.innerText = "Resume"; 
-    } else { 
+    const btn = document.getElementById('pomoBtn'), disp = document.getElementById('pomoDisplay'), label = document.getElementById('pomoPhase'); 
+    if (isPomoRunning) { clearInterval(pomoInterval); isPomoRunning = false; btn.innerText = "Resume"; } 
+    else { 
         isPomoRunning = true; btn.innerText = "Pause"; 
         pomoInterval = setInterval(() => { 
             pomoTime--; 
             let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60; 
             disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`; 
             label.innerText = isWorkPhase ? "Focus (48m)" : "Rest (12m)"; 
-            if (pomoTime <= 0) { 
-                chime(); isWorkPhase = !isWorkPhase; 
-                pomoTime = isWorkPhase ? 2880 : 720; 
-                alert(isWorkPhase ? "Work Start!" : "Break Start!"); 
-            } 
+            if (pomoTime <= 0) { isWorkPhase = !isWorkPhase; pomoTime = isWorkPhase ? 2880 : 720; alert("Phase Switch!"); } 
         }, 1000); 
     } 
 } 
 
-/* GARDEN LOGIC */ 
+/* GARDEN */
 function getPlantEmoji(name, streak) { 
     if (streak === 0) return null; 
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
-    if (streak < 7) return '🍀';      
+    if (streak < 7) return '🍀';
     const hash = getHash(name);
-    const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
-    const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
-    const n = name.toLowerCase(); 
-    const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work');
-    return isPhysical ? greenOptions[hash % greenOptions.length] : floralOptions[hash % floralOptions.length];
+    const floral = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
+    const green = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
+    const isPhysical = name.toLowerCase().includes('run') || name.toLowerCase().includes('gym');
+    return isPhysical ? green[hash % green.length] : floral[hash % floral.length];
 } 
 
 function render() { 
     const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
-    const g = document.getElementById('garden'); 
-    const hl = document.getElementById('habitList'); 
+    const g = document.getElementById('garden'), hl = document.getElementById('habitList'); 
     hl.innerHTML = ''; g.innerHTML = ''; 
+    
+    let completedToday = 0;
     h.forEach((x, i) => { 
         let s = 0; let curr = new Date(d + "T12:00:00"); 
         while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); } 
+        if (x.done.includes(d)) completedToday++;
+
         hl.innerHTML += `<div class="habit"> 
             <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div> 
-            <div style="display:flex; align-items:center; gap:12px"> 
-                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; font-size:0.7rem">Delete</button> 
+            <div style="display:flex; align-items:center; gap:10px">
+                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; width:auto; font-size:0.7rem">Del</button>
                 <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div> 
-            </div> 
+            </div>
         </div>`; 
         const emoji = getPlantEmoji(x.name, s); 
         if (emoji) {
             const hash = getHash(x.name);
             const size = 1.8 + (hash % 10) / 10 + 'rem';
-            const shift = (hash % 15) - 7 + 'px';
-            const rotate = (hash % 20) - 10 + 'deg';
-            g.innerHTML += `<div class="plant" style="font-size:${size}; margin-left:${shift}; transform:rotate(${rotate}); animation-delay:${i * 0.2}s;">${emoji}</div>`;
-        } else {
-            g.innerHTML += `<div class="plant-hole"></div>`;
-        }
+            g.innerHTML += `<div class="plant" style="font-size:${size}; animation-delay:${i * 0.2}s;">${emoji}</div>`;
+        } else { g.innerHTML += `<div class="plant-hole"></div>`; }
     }); 
-    updateCaffeineUI(); 
-    updateAlcoholUI();
-    renderCalendar(); 
+
+    g.classList.toggle('thirsty', completedToday === 0 && h.length > 0);
+    document.getElementById('journalArea').value = journalData[d] || '';
+    updateCaffeineUI(); updateAlcoholUI(); renderCalendar(); updateDailyQuote();
 } 
 
 function updateDailyQuote() { 
@@ -387,7 +397,7 @@ function updateDailyQuote() {
     document.getElementById('quoteAuthor').innerText = `— ${q.author}`; 
 } 
 
-/* HABIT LOGIC */ 
+/* HABITS */
 function toggleHabit(idx) { 
     const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
     const i = h[idx].done.indexOf(d); 
@@ -403,37 +413,21 @@ function addHabit() {
 function deleteHabit(idx) { 
     const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
     if(confirm(`Remove "${h[idx].name}"?`)) { h.splice(idx, 1); localStorage.setItem('habits', JSON.stringify(h)); render(); } 
-} 
+}
 
-/* CONSUMPTION LOGIC */ 
-function addCaffeine(val) { 
-    const d = dp.value; caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val); 
-    localStorage.setItem('caffeine', JSON.stringify(caffeineData)); updateCaffeineUI(); 
-} 
-function updateCaffeineUI() { 
-    const count = caffeineData[dp.value] || 0; 
-    document.getElementById('caffeineCount').innerText = count; 
-    document.getElementById('caffeineStatus').innerText = `${count} cups today`; 
-} 
-function addAlcohol(val) { 
-    const d = dp.value; alcoholData[d] = Math.max(0, (alcoholData[d] || 0) + val); 
-    localStorage.setItem('alcohol', JSON.stringify(alcoholData)); updateAlcoholUI(); 
-} 
-function updateAlcoholUI() { 
-    const count = alcoholData[dp.value] || 0; 
-    document.getElementById('alcoholCount').innerText = count; 
-    document.getElementById('alcoholStatus').innerText = `${count} units today`; 
-} 
+/* CONSUMPTION */
+function addCaffeine(val) { caffeineData[dp.value] = Math.max(0, (caffeineData[dp.value] || 0) + val); localStorage.setItem('caffeine', JSON.stringify(caffeineData)); updateCaffeineUI(); } 
+function updateCaffeineUI() { const count = caffeineData[dp.value] || 0; document.getElementById('caffeineCount').innerText = count; document.getElementById('caffeineStatus').innerText = `${count} cups today`; } 
+function addAlcohol(val) { alcoholData[dp.value] = Math.max(0, (alcoholData[dp.value] || 0) + val); localStorage.setItem('alcohol', JSON.stringify(alcoholData)); updateAlcoholUI(); } 
+function updateAlcoholUI() { const count = alcoholData[dp.value] || 0; document.getElementById('alcoholCount').innerText = count; document.getElementById('alcoholStatus').innerText = `${count} units today`; } 
 
-/* CALENDAR */ 
+/* CALENDAR */
 function renderCalendar() { 
-    const cal = document.getElementById('calendar'); 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00"); 
+    const cal = document.getElementById('calendar'), h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00"); 
     const month = curr.getMonth(), year = curr.getFullYear(); 
     document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' }); 
     cal.innerHTML = ''; 
-    const first = new Date(year, month, 1).getDay(); 
-    const total = new Date(year, month + 1, 0).getDate(); 
+    const first = new Date(year, month, 1).getDay(), total = new Date(year, month + 1, 0).getDate(); 
     for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>'; 
     for (let day = 1; day <= total; day++) { 
         const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; 
@@ -441,118 +435,88 @@ function renderCalendar() {
         const dEl = document.createElement('div'); 
         dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`; 
         if (doneCount > 0) dEl.style.background = doneCount >= h.length ? "var(--g-dark)" : "var(--g-pale)"; 
-        dEl.innerText = day; 
-        dEl.onclick = () => { dp.value = dStr; render(); }; 
+        dEl.innerText = day; dEl.onclick = () => { dp.value = dStr; render(); }; 
         cal.appendChild(dEl); 
     } 
 } 
 
-/* AUDIO */ 
-const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
-const tracks = {
-    storm: REPO_URL + 'storm.mp3', waves: REPO_URL + 'waves.mp3',
-    forest: REPO_URL + 'forest.mp3', ambient: REPO_URL + 'ambient.mp3', birds: REPO_URL + 'birdsong.mp3'
-};
-let fadeInterval;
-function playTrack(t, el) { 
-    const player = document.getElementById('naturePlayer');
-    if (fadeInterval) clearInterval(fadeInterval);
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    el.classList.add('playing');
-    if (tracks[t]) {
-        player.src = tracks[t]; player.volume = 0;
-        player.play().then(() => {
-            fadeInterval = setInterval(() => {
-                if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
-                else clearInterval(fadeInterval);
-            }, 100);
-        }).catch(() => console.log("User interaction required"));
-    }
-}
-function stopAudio() { 
-    const player = document.getElementById('naturePlayer');
-    if (fadeInterval) clearInterval(fadeInterval);
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    player.pause(); player.volume = 0; player.src = ""; player.load(); 
-}
-
-/* BOX BREATHING */ 
+/* BREATHING */
 let bT, isB = false; 
 function toggleBreathing() { isB ? stopB() : startB(); } 
 function startB() { 
     isB = true; 
+    const mode = document.getElementById('breathMode').value;
     const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
     c.classList.add('animating'); 
-    let step = 0, sec = 4; 
-    const steps = [
-        {t:'Inhale', s:'scale(1.3)', r:'40%'}, {t:'Hold', s:'scale(1.3)', r:'40%'},
-        {t:'Exhale', s:'scale(0.8)', r:'20%'}, {t:'Hold', s:'scale(0.8)', r:'20%'}
-    ]; 
-    const updateUI = () => { l.innerText = steps[step].t; c.style.transform = steps[step].s; c.style.borderRadius = steps[step].r; };
-    updateUI(); co.innerText = sec;
+    let configs = {
+        box: [{t:'Inhale', s:1.3, d:4}, {t:'Hold', s:1.3, d:4}, {t:'Exhale', s:0.8, d:4}, {t:'Hold', s:0.8, d:4}],
+        relax: [{t:'Inhale', s:1.3, d:4}, {t:'Hold', s:1.3, d:7}, {t:'Exhale', s:0.8, d:8}],
+        calm: [{t:'Inhale', s:1.3, d:6}, {t:'Hold', s:1.3, d:2}, {t:'Exhale', s:0.8, d:7}]
+    };
+    let step = 0, sec = configs[mode][0].d; 
+    const updateUI = () => { 
+        l.innerText = configs[mode][step].t; 
+        c.style.transform = `scale(${configs[mode][step].s})`; 
+        co.innerText = sec;
+    };
+    updateUI();
     bT = setInterval(() => { 
         sec--; 
-        if (sec < 0) { step = (step + 1) % 4; sec = 4; updateUI(); }
+        if (sec < 0) { step = (step + 1) % configs[mode].length; sec = configs[mode][step].d; updateUI(); }
         co.innerText = sec;
     }, 1000); 
 } 
-function stopB(){ 
-    isB = false; clearInterval(bT); 
-    const c = document.getElementById('circle');
-    c.classList.remove('animating'); c.style.transform='scale(1)'; 
-    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; 
-} 
+function stopB(){ isB = false; clearInterval(bT); const c = document.getElementById('circle'); c.classList.remove('animating'); c.style.transform='scale(1)'; document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; } 
 
-/* NAVIGATION */ 
+/* NAVIGATION */
 const container = document.getElementById('screen-container'); 
-let startX = 0, startY = 0, currentPane = 1, isScrolling = false, isSwiping = false; 
-window.addEventListener('touchstart', e => { 
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
-    isScrolling = false; isSwiping = false; container.style.transition = 'none'; 
-}, { passive: true }); 
-window.addEventListener('touchmove', e => { 
-    const deltaX = e.touches[0].clientX - startX;
-    const deltaY = e.touches[0].clientY - startY;
-    if (!isScrolling && !isSwiping) {
-        if (Math.abs(deltaY) > Math.abs(deltaX)) isScrolling = true; 
-        else if (Math.abs(deltaX) > 10) isSwiping = true; 
-    }
-    if (isSwiping) {
-        if (e.cancelable) e.preventDefault(); 
-        const diff = (deltaX) / window.innerWidth * 33.333; 
-        container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
-    }
-}, { passive: false }); 
+let startX = 0, currentPane = 1; 
+window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; container.style.transition = 'none'; }, { passive: true }); 
 window.addEventListener('touchend', e => { 
-    if (isSwiping) {
-        const diff = e.changedTouches[0].clientX - startX; 
-        if (Math.abs(diff) > 50) { 
-            if (diff < 0 && currentPane < 2) currentPane++; 
-            else if (diff > 0 && currentPane > 0) currentPane--; 
-        }
+    const diff = e.changedTouches[0].clientX - startX; 
+    if (Math.abs(diff) > 50) { 
+        if (diff < 0 && currentPane < 2) currentPane++; 
+        else if (diff > 0 && currentPane > 0) currentPane--; 
     }
     container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
-    container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
+    container.style.transform = `translateX(${currentPane * -33.333333}%)`; 
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
 }); 
 
-/* DATA IO */ 
+/* AUDIO */
+const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
+const tracks = { storm: REPO_URL+'storm.mp3', waves: REPO_URL+'waves.mp3', forest: REPO_URL+'forest.mp3', birds: REPO_URL+'birdsong.mp3' };
+function playTrack(t, el) { 
+    const p = document.getElementById('naturePlayer');
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+    p.src = tracks[t]; p.play();
+}
+function stopAudio() { const p = document.getElementById('naturePlayer'); p.pause(); document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing')); }
+
+/* EXPORT/IMPORT */
 function exportData() { 
     const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
     const csv = "Type,Item,Date\n" + h.map(x => x.done.map(d => `Habit,"${x.name}",${d}`).join('\n')).join('\n'); 
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='GardenBackup.csv'; a.click(); 
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='MindGarden_Backup.csv'; a.click(); 
 } 
 function importData(e) { 
     const reader = new FileReader(); 
     reader.onload = ev => { 
         const lines = ev.target.result.split('\n').slice(1); const h = []; 
-        lines.forEach(l => { const p = l.split(','); if(p.length<3)return; const name=p[1].replace(/"/g,''), date=p[2].trim(); let hab=h.find(x=>x.name===name); if(!hab){hab={name,done:[]};h.push(hab);} hab.done.push(date); }); 
+        lines.forEach(l => { 
+            const p = l.split(','); if(p.length<3)return; 
+            const name=p[1].replace(/"/g,''), date=p[2].trim(); 
+            let hab=h.find(x=>x.name===name); if(!hab){hab={name,done:[]};h.push(hab);} hab.done.push(date); 
+        }); 
         localStorage.setItem('habits', JSON.stringify(h)); render(); 
     }; 
     reader.readAsText(e.target.files[0]); 
 } 
-dp.onchange = render; 
-updateDailyQuote(); 
+
+/* INIT */
+updateLifeProgress();
+setInterval(updateLifeProgress, 60000);
 render(); 
 </script> 
 </body> 
