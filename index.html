@@ -1,561 +1,559 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8" /> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /> 
-    <title>Mind Garden</title> 
-    
-    <meta name="apple-mobile-web-app-capable" content="yes"> 
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /> 
+    <title>Mind Garden</title> 
+    
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
 
-    <style> 
-        :root { 
-            --bg: #020617; 
-            --card: rgba(30, 41, 59, 0.5); 
-            --muted: #94a3b8; 
-            --g-pale: #4ade80; 
-            --g-dark: #166534; 
-            --yellow: #facc15;  
-            --red: #ef4444; 
-            --accent: #38bdf8; 
-            --border: rgba(255, 255, 255, 0.1); 
-            --soil-bottom: rgba(45, 26, 12, 0.4); 
-            --coffee: #92400e;
-            --wine: #4338ca;
-        } 
+    <style> 
+        :root { 
+            --bg: #020617; 
+            --card: rgba(30, 41, 59, 0.5); 
+            --muted: #94a3b8; 
+            --g-pale: #4ade80; 
+            --g-dark: #166534; 
+            --yellow: #facc15;  
+            --red: #ef4444; 
+            --accent: #38bdf8; 
+            --border: rgba(255, 255, 255, 0.1); 
+            --soil-bottom: rgba(45, 26, 12, 0.4); 
+            --coffee: #92400e;
+            --wine: #4338ca;
+        } 
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } 
-        html { background: var(--bg); height: 100%; width: 100%; overflow: hidden; } 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } 
+        html { background: var(--bg); height: 100%; width: 100%; overflow: hidden; } 
 
-        body {  
-            margin: 0; font-family: -apple-system, system-ui, sans-serif; 
-            background: radial-gradient(circle at top right, #0f172a, #020617); 
-            color: #fff; overflow: hidden; overscroll-behavior: none;  
-            height: 100%; width: 100%; 
-        } 
+        body {  
+            margin: 0; font-family: -apple-system, system-ui, sans-serif; 
+            background: radial-gradient(circle at top right, #0f172a, #020617); 
+            color: #fff; overflow: hidden; overscroll-behavior: none;  
+            height: 100%; width: 100%; 
+        } 
 
-        #screen-container {  
-            display: flex; width: 300%; height: 100%;  
-            will-change: transform; transform: translateX(-33.333333%); 
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-        } 
+        #screen-container {  
+            display: flex; width: 300%; height: 100%;  
+            will-change: transform; transform: translateX(-33.333333%); 
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+        } 
 
-        .view {  
-            width: 33.333333%; height: 100%; overflow-y: auto; padding: 1.5rem;  
-            padding-top: calc(env(safe-area-inset-top) + 10px);  
-            padding-bottom: calc(env(safe-area-inset-bottom) + 100px); 
-            position: relative; flex-shrink: 0; 
-            -webkit-overflow-scrolling: touch;
-        } 
+        .view {  
+            width: 33.333333%; height: 100%; overflow-y: auto; padding: 1.5rem;  
+            padding-top: calc(env(safe-area-inset-top) + 10px);  
+            padding-bottom: calc(env(safe-area-inset-bottom) + 100px); 
+            position: relative; flex-shrink: 0; 
+            -webkit-overflow-scrolling: touch;
+        } 
 
-        .nav-dots { 
-            position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px); 
-            left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; 
-        } 
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; } 
-        .dot.active { background: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px var(--accent); } 
+        .nav-dots { 
+            position: fixed; bottom: calc(env(safe-area-inset-bottom) + 20px); 
+            left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; 
+        } 
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transition: 0.3s; } 
+        .dot.active { background: var(--accent); transform: scale(1.3); box-shadow: 0 0 10px var(--accent); } 
 
-        .card {  
-            background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
-            border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); 
-        } 
+        .card {  
+            background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+            border-radius: 24px; padding: 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); 
+        } 
 
-        .garden {  
-            display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;  
-            gap: 2px; padding: 40px 15px 15px 15px; 
-            background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%); 
-            border-radius: 30px; min-height: 160px; transition: all 1s ease; position: relative; 
-        } 
+        .garden {  
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;  
+            gap: 2px; padding: 40px 15px 15px 15px; 
+            background: linear-gradient(to bottom, transparent 50%, var(--soil-bottom) 100%); 
+            border-radius: 30px; min-height: 160px; transition: all 1s ease; position: relative; 
+        } 
 
-        .plant {  
-            display: inline-block; 
-            animation: sway 5s ease-in-out infinite alternate;  
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); 
-            z-index: 2; transform-origin: bottom center; 
-        } 
-        .plant-hole { width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8); } 
-        @keyframes sway { 0% { transform: rotate(-2deg) translateY(0); } 100% { transform: rotate(3deg) translateY(-2px); } } 
+        .plant {  
+            display: inline-block; 
+            animation: sway 5s ease-in-out infinite alternate;  
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); 
+            z-index: 2; transform-origin: bottom center; 
+        } 
+        .plant-hole { width: 14px; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 50%; margin: 15px 10px; box-shadow: inset 0 2px 2px rgba(0,0,0,0.8); } 
+        @keyframes sway { 0% { transform: rotate(-2deg) translateY(0); } 100% { transform: rotate(3deg) translateY(-2px); } } 
 
-        .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1rem; } 
-        .pomo-time { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; color: var(--accent); font-variant-numeric: tabular-nums; } 
-        .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); } 
+        .pomo-card { text-align: center; width: 100%; padding: 1.5rem; border-radius: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); margin-bottom: 1rem; } 
+        .pomo-time { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; color: var(--accent); font-variant-numeric: tabular-nums; } 
+        .pomo-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); } 
 
-        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
-        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
-        .check.done { background: var(--g-pale); color: #020617; } 
-        
-        input, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
-        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;} 
-        .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
-        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
-        
-        .breath-circle { 
-            width: 180px; height: 180px; 
-            border: 4px solid rgba(74, 222, 128, 0.3); 
-            border-radius: 32px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            position: relative; cursor: pointer; 
-            transition: transform 4s linear, border-radius 1s ease; 
-        } 
-        .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 32px; opacity: 0; animation: ripple 4s infinite ease-out; } 
-        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } } 
+        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
+        .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
+        .check.done { background: var(--g-pale); color: #020617; } 
+        
+        input, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
+        .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;} 
+        .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
+        .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
+        
+        .breath-circle { 
+            width: 180px; height: 180px; 
+            border: 4px solid rgba(74, 222, 128, 0.3); 
+            border-radius: 32px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; cursor: pointer; 
+            transition: transform 4s linear, border-radius 1s ease; 
+        } 
+        .breath-circle.animating::after { content: ''; position: absolute; inset: -15px; border: 2px solid var(--g-pale); border-radius: 32px; opacity: 0; animation: ripple 4s infinite ease-out; } 
+        @keyframes ripple { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.4); opacity: 0; } } 
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } 
-        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; } 
-        .cal-day.active { border: 2px solid var(--accent); color: #fff; } 
-    </style> 
-</head> 
-<body> 
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } 
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; } 
+        .cal-day.active { border: 2px solid var(--accent); color: #fff; } 
+    </style> 
+</head> 
+<body> 
 
-<div class="nav-dots"> 
-    <div class="dot" id="dot0"></div> 
-    <div class="dot active" id="dot1"></div> 
-    <div class="dot" id="dot2"></div> 
-</div> 
+<div class="nav-dots"> 
+    <div class="dot" id="dot0"></div> 
+    <div class="dot active" id="dot1"></div> 
+    <div class="dot" id="dot2"></div> 
+</div> 
 
-<div id="screen-container"> 
-    <div class="view"> 
-        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
-        <div class="pomo-card"> 
-            <div id="pomoPhase" class="pomo-label">Ready</div> 
-            <div class="pomo-time" id="pomoDisplay">48:00</div> 
-            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent); margin-top:10px">Start Session</button> 
-        </div> 
-        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div> 
-        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div> 
-        <div class="track-card" onclick="playTrack('forest', this)"><span>🌲</span><strong>Deep Forest</strong></div> 
-        <div class="track-card" onclick="playTrack('birds', this)"><span>🐦</span><strong>Birdsong</strong></div> 
-        <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><strong>Ambient</strong></div> 
-        <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button> 
-    </div> 
+<div id="screen-container"> 
+    <div class="view"> 
+        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
+        <div class="pomo-card"> 
+            <div id="pomoPhase" class="pomo-label">Ready</div> 
+            <div class="pomo-time" id="pomoDisplay">48:00</div> 
+            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent); margin-top:10px">Start Session</button> 
+        </div> 
+        <div class="track-card" onclick="playTrack('storm', this)"><span>⛈️</span><strong>Tropical Storm</strong></div> 
+        <div class="track-card" onclick="playTrack('waves', this)"><span>🌊</span><strong>Ocean Waves</strong></div> 
+        <div class="track-card" onclick="playTrack('forest', this)"><span>🌲</span><strong>Deep Forest</strong></div> 
+        <div class="track-card" onclick="playTrack('birds', this)"><span>🐦</span><strong>Birdsong</strong></div> 
+        <div class="track-card" onclick="playTrack('ambient', this)"><span>✨</span><strong>Ambient</strong></div> 
+        <button onclick="stopAudio()" style="background:var(--red); width:100%; border:none; font-weight:bold; margin-top:10px">Mute Sounds</button> 
+    </div> 
 
-    <div class="view"> 
-        <div class="card"> 
-            <strong id="gardenTitle">Your Garden</strong> 
-            <div id="garden" class="garden"></div> 
-        </div> 
+    <div class="view"> 
+        <div class="card"> 
+            <strong id="gardenTitle">Your Garden</strong> 
+            <div id="garden" class="garden"></div> 
+        </div> 
 
-        <div class="card"> 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px"> 
-                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups</small></div> 
-                <div style="display:flex; gap:10px; align-items:center"> 
-                    <button onclick="addCaffeine(-1)" style="width:40px; height:40px; padding:0">−</button> 
-                    <span id="caffeineCount" style="font-weight:bold; font-size:1.2rem">0</span> 
-                    <button onclick="addCaffeine(1)" style="width:40px; height:40px; padding:0; background:var(--coffee); border:none">+</button> 
-                </div> 
-            </div> 
-            <div style="display:flex; justify-content:space-between; align-items:center"> 
-                <div><strong>Alcohol</strong><br><small id="alcoholStatus">0 units</small></div> 
-                <div style="display:flex; gap:10px; align-items:center"> 
-                    <button onclick="addAlcohol(-1)" style="width:40px; height:40px; padding:0">−</button> 
-                    <span id="alcoholCount" style="font-weight:bold; font-size:1.2rem">0</span> 
-                    <button onclick="addAlcohol(1)" style="width:40px; height:40px; padding:0; background:var(--wine); border:none">+</button> 
-                </div> 
-            </div> 
-        </div> 
-        
-        <div id="habitList" class="card"></div> 
+        <div class="card"> 
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px"> 
+                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups</small></div> 
+                <div style="display:flex; gap:10px; align-items:center"> 
+                    <button onclick="addCaffeine(-1)" style="width:40px; height:40px; padding:0">−</button> 
+                    <span id="caffeineCount" style="font-weight:bold; font-size:1.2rem">0</span> 
+                    <button onclick="addCaffeine(1)" style="width:40px; height:40px; padding:0; background:var(--coffee); border:none">+</button> 
+                </div> 
+            </div> 
+            <div style="display:flex; justify-content:space-between; align-items:center"> 
+                <div><strong>Alcohol</strong><br><small id="alcoholStatus">0 units</small></div> 
+                <div style="display:flex; gap:10px; align-items:center"> 
+                    <button onclick="addAlcohol(-1)" style="width:40px; height:40px; padding:0">−</button> 
+                    <span id="alcoholCount" style="font-weight:bold; font-size:1.2rem">0</span> 
+                    <button onclick="addAlcohol(1)" style="width:40px; height:40px; padding:0; background:var(--wine); border:none">+</button> 
+                </div> 
+            </div> 
+        </div> 
+        
+        <div id="habitList" class="card"></div> 
 
-        <div class="card"> 
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px"> 
-                <span id="monthLabel" style="font-size:0.8rem; font-weight:bold">Heatmap</span> 
-                <input type="date" id="datePicker" style="padding:0; background:none; border:none; color:var(--accent); width:auto"> 
-            </div> 
-            <div id="calendar" class="calendar-grid"></div> 
-        </div> 
+        <div class="card"> 
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px"> 
+                <span id="monthLabel" style="font-size:0.8rem; font-weight:bold">Heatmap</span> 
+                <input type="date" id="datePicker" style="padding:0; background:none; border:none; color:var(--accent); width:auto"> 
+            </div> 
+            <div id="calendar" class="calendar-grid"></div> 
+        </div> 
 
-        <div class="card"> 
-            <input id="habitInput" placeholder="Enter habit name..."> 
-            <button class="btn-primary" onclick="addHabit()" style="margin-top:10px">Plant Habit</button> 
-        </div> 
-        
-        <div style="display:flex; gap:10px; margin-top:10px"> 
-            <button onclick="exportData()" style="flex:1; font-size:0.7rem">📥 Backup</button> 
-            <button onclick="document.getElementById('importFile').click()" style="flex:1; font-size:0.7rem">📤 Restore</button> 
-            <input type="file" id="importFile" style="display:none" onchange="importData(event)"> 
-        </div> 
-    </div> 
+        <div class="card"> 
+            <input id="habitInput" placeholder="Enter habit name..."> 
+            <button class="btn-primary" onclick="addHabit()" style="margin-top:10px">Plant Habit</button> 
+        </div> 
+        
+        <div style="display:flex; gap:10px; margin-top:10px"> 
+            <button onclick="exportData()" style="flex:1; font-size:0.7rem">📥 Backup</button> 
+            <button onclick="document.getElementById('importFile').click()" style="flex:1; font-size:0.7rem">📤 Restore</button> 
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)"> 
+        </div> 
+    </div> 
 
-    <div class="view" style="display: flex; flex-direction: column;"> 
-        <div class="card" style="width: 100%; text-align: center; border-color: var(--accent); padding: 1.5rem;"> 
-            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Daily Reflection</div> 
-            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;">"Don't explain your philosophy. Embody it."</div> 
-            <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">— Epictetus</div> 
-        </div> 
+    <div class="view" style="display: flex; flex-direction: column;"> 
+        <div class="card" style="width: 100%; text-align: center; border-color: var(--accent); padding: 1.5rem;"> 
+            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Daily Reflection</div> 
+            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;">"Don't explain your philosophy. Embody it."</div> 
+            <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">— Epictetus</div> 
+        </div> 
 
-        <div style="flex: 0.2; min-height: 20px;"></div>
+        <div style="flex: 0.2; min-height: 20px;"></div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
-                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
-                <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
-            </div> 
-            <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
-        </div>
-    </div> 
-</div> 
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
+                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
+                <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
+            </div> 
+            <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
+        </div>
+    </div> 
+</div> 
 
-<audio id="naturePlayer" loop></audio> 
+<audio id="naturePlayer" loop></audio> 
 
-<script> 
-/* DATA & QUOTES */ 
+<script> 
+/* DATA & QUOTES */ 
 const stoicQuotes = [
-  { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
-  { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
-  { text: "Only the educated are free.", author: "Epictetus" },
-  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions. Things not in our control are body, property, reputation, command, and, in one word, whatever are not our actions.", author: "Epictetus" },
-  { text: "The greater the difficulty, the more glory in surmounting it. Skillful pilots gain their reputation from storms and tempests.", author: "Epictetus" },
-  { text: "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.", author: "Epictetus" },
-  { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
-  { text: "People are not disturbed by things, but by the views they take of them.", author: "Epictetus" },
-  { text: "If anyone tells you that a certain person speaks ill of you, do not make excuses about what is said of you but answer, 'He was ignorant of my other faults, else he would not have mentioned these alone.'", author: "Epictetus" },
-  { text: "Any person capable of angering you becomes your master; he can anger you only when you permit yourself to be disturbed by him.", author: "Epictetus" },
-  { text: "Wealth consists not in having great possessions, but in having few wants.", author: "Epictetus" },
-  { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" },
-  { text: "To accuse others for one’s own misfortune is a sign of want of education. To accuse oneself shows that one’s education has begun. To accuse neither oneself nor others shows that one’s education is complete.", author: "Epictetus" },
-  { text: "There is only one way to happiness and that is to cease worrying about things which are beyond the power or our will.", author: "Epictetus" },
-  { text: "If you want to improve, be content to be thought foolish and stupid.", author: "Epictetus" },
-  { text: "The key is to keep company only with people who uplift you, whose presence calls forth your best.", author: "Epictetus" },
-  { text: "If you would be a reader, read; if a writer, write.", author: "Epictetus" },
-  { text: "God has entrusted me with myself. No man is free who is not master of himself. A man should so live that his happiness shall depend as little as possible on external things. The world turns aside to let any man pass who knows where he is going.", author: "Epictetus" },
-  { text: "Remember, it is not enough to be hit or insulted to be harmed, you must believe that you are being harmed.", author: "Epictetus" },
-  { text: "A ship should not ride on a single anchor, nor life on a single hope.", author: "Epictetus" },
-  { text: "Demand not that things happen as you wish, but wish them to happen as they do, and you will go on well.", author: "Epictetus" },
-  { text: "Remember that you ought to behave in life as you would at a banquet...", author: "Epictetus" },
-  { text: "Events do not just happen, but arrive by appointment.", author: "Epictetus" },
-  { text: "Either God wants to abolish evil, and cannot; or he can, but does not want to.", author: "Epictetus" },
-  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
-  { text: "The soul becomes dyed with the colour of its thoughts.", author: "Marcus Aurelius" },
-  { text: "Do not act as if you were going to live ten thousand years. Death hangs over you. While you live, while it is in your power, be good.", author: "Marcus Aurelius" },
-  { text: "Dwell on the beauty of life. Watch the stars, and see yourself running with them...", author: "Marcus Aurelius" },
-  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
-  { text: "If it is not right do not do it; if it is not true do not say it.", author: "Marcus Aurelius" },
-  { text: "If any man despises me, that is his problem. My only concern is not doing or saying anything deserving of contempt.", author: "Marcus Aurelius" },
-  { text: "The first rule is to keep an untroubled spirit...", author: "Marcus Aurelius" },
-  { text: "Never let the future disturb you...", author: "Marcus Aurelius" },
-  { text: "How much time he gains who does not look to see what his neighbour says or does or thinks...", author: "Marcus Aurelius" },
-  { text: "Very little is needed to make a happy life; it is all within yourself in your way of thinking.", author: "Marcus Aurelius" },
-  { text: "Whenever you are about to find fault with someone, ask yourself...", author: "Marcus Aurelius" },
-  { text: "If you are distressed by anything external, the pain is not due to the thing itself...", author: "Marcus Aurelius" },
-  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius" },
-  { text: "Everything we hear is an opinion, everything we see is a perspective, not the truth.", author: "Marcus Aurelius" },
-  { text: "If someone is able to show me that what I think or do is not right, I will happily change...", author: "Marcus Aurelius" },
-  { text: "I have often wondered how it is that every man loves himself more than all the rest...", author: "Marcus Aurelius" },
-  { text: "Begin each day by telling yourself: Today I shall be meeting with interference...", author: "Marcus Aurelius" },
-  { text: "Perfection of character is this: to live each day as if it were your last...", author: "Marcus Aurelius" },
-  { text: "A person’s worth is measured by the worth of what he values.", author: "Marcus Aurelius" },
-  { text: "Observe always that everything is the result of change...", author: "Marcus Aurelius" },
-  { text: "Be like the cliff against which the waves continually break; but it stands firm...", author: "Marcus Aurelius" },
-  { text: "A man must stand erect, not be kept erect by others.", author: "Marcus Aurelius" },
-  { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
-  { text: "If you really want to escape the things that harass you...", author: "Seneca" },
-  { text: "Sometimes even to live is an act of courage.", author: "Seneca" },
-  { text: "Fire tests gold, suffering tests brave men.", author: "Seneca" },
-  { text: "Enjoy present pleasures in such a way as not to injure future ones.", author: "Seneca" },
-  { text: "They lose the day in expectation of the night...", author: "Seneca" },
-  { text: "It is not that we have so little time but that we lose so much.", author: "Seneca" },
-  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
-  { text: "The greatest obstacle to living is expectancy...", author: "Seneca" },
-  { text: "If a man knows not to which port he sails, no wind is favorable.", author: "Seneca" },
-  { text: "Anger, if not restrained, is frequently more hurtful to us than the injury that provokes it.", author: "Seneca" },
-  { text: "True happiness is to enjoy the present...", author: "Seneca" },
-  { text: "All cruelty springs from weakness.", author: "Seneca" },
-  { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca" },
-  { text: "Withdraw into yourself, as far as you can...", author: "Seneca" },
-  { text: "He who spares the wicked injures the good.", author: "Seneca" },
-  { text: "You act like mortals in all that you fear...", author: "Seneca" },
-  { text: "He suffers more than necessary...", author: "Seneca" },
-  { text: "A gift consists not in what is done or given...", author: "Seneca" },
-  { text: "People are frugal in guarding their personal property...", author: "Seneca" },
-  { text: "Every new beginning comes from some other beginning’s end.", author: "Seneca" },
-  { text: "To win true freedom you must be a slave to philosophy.", author: "Seneca" },
-  { text: "It is a rough road that leads to the heights of greatness.", author: "Seneca" },
-  { text: "Often a very old man has no other proof of his long life than his age.", author: "Seneca" },
-  { text: "No man is crushed by misfortune unless he has first been deceived by prosperity.", author: "Seneca" },
-  { text: "Man conquers the world by conquering himself.", author: "Zeno of Citium" },
-  { text: "Better to trip with the feet than with the tongue.", author: "Zeno of Citium" },
-  { text: "Well-being is realized by small steps, but is truly no small thing.", author: "Zeno of Citium" },
-  { text: "Nothing is more hostile to a firm grasp on knowledge than self-deception.", author: "Zeno of Citium" },
-  { text: "The goal of life is living in agreement with Nature.", author: "Zeno of Citium" },
-  { text: "We have two ears and one mouth, so we should listen more than we say.", author: "Zeno of Citium" },
-  { text: "If you lay violent hands on me, you’ll have my body, but my mind will remain with Stilpo.", author: "Zeno of Citium" },
-  { text: "Happiness is a good flow of life.", author: "Zeno of Citium" },
-  { text: "A bad feeling is a commotion of the mind repugnant to reason, and against nature.", author: "Zeno of Citium" },
-  { text: "No loss should be more regrettable to us than losing our time, for it’s irretrievable.", author: "Zeno of Citium" }
+  { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
+  { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
+  { text: "Only the educated are free.", author: "Epictetus" },
+  { text: "Some things are in our control and others not. Things in our control are opinion, pursuit, desire, aversion, and, in a word, whatever are our own actions. Things not in our control are body, property, reputation, command, and, in one word, whatever are not our actions.", author: "Epictetus" },
+  { text: "The greater the difficulty, the more glory in surmounting it. Skillful pilots gain their reputation from storms and tempests.", author: "Epictetus" },
+  { text: "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.", author: "Epictetus" },
+  { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
+  { text: "People are not disturbed by things, but by the views they take of them.", author: "Epictetus" },
+  { text: "If anyone tells you that a certain person speaks ill of you, do not make excuses about what is said of you but answer, 'He was ignorant of my other faults, else he would not have mentioned these alone.'", author: "Epictetus" },
+  { text: "Any person capable of angering you becomes your master; he can anger you only when you permit yourself to be disturbed by him.", author: "Epictetus" },
+  { text: "Wealth consists not in having great possessions, but in having few wants.", author: "Epictetus" },
+  { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" },
+  { text: "To accuse others for one’s own misfortune is a sign of want of education. To accuse oneself shows that one’s education has begun. To accuse neither oneself nor others shows that one’s education is complete.", author: "Epictetus" },
+  { text: "There is only one way to happiness and that is to cease worrying about things which are beyond the power or our will.", author: "Epictetus" },
+  { text: "If you want to improve, be content to be thought foolish and stupid.", author: "Epictetus" },
+  { text: "The key is to keep company only with people who uplift you, whose presence calls forth your best.", author: "Epictetus" },
+  { text: "If you would be a reader, read; if a writer, write.", author: "Epictetus" },
+  { text: "God has entrusted me with myself. No man is free who is not master of himself. A man should so live that his happiness shall depend as little as possible on external things. The world turns aside to let any man pass who knows where he is going.", author: "Epictetus" },
+  { text: "Remember, it is not enough to be hit or insulted to be harmed, you must believe that you are being harmed.", author: "Epictetus" },
+  { text: "A ship should not ride on a single anchor, nor life on a single hope.", author: "Epictetus" },
+  { text: "Demand not that things happen as you wish, but wish them to happen as they do, and you will go on well.", author: "Epictetus" },
+  { text: "Remember that you ought to behave in life as you would at a banquet...", author: "Epictetus" },
+  { text: "Events do not just happen, but arrive by appointment.", author: "Epictetus" },
+  { text: "Either God wants to abolish evil, and cannot; or he can, but does not want to.", author: "Epictetus" },
+  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+  { text: "The soul becomes dyed with the colour of its thoughts.", author: "Marcus Aurelius" },
+  { text: "Do not act as if you were going to live ten thousand years. Death hangs over you. While you live, while it is in your power, be good.", author: "Marcus Aurelius" },
+  { text: "Dwell on the beauty of life. Watch the stars, and see yourself running with them...", author: "Marcus Aurelius" },
+  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
+  { text: "If it is not right do not do it; if it is not true do not say it.", author: "Marcus Aurelius" },
+  { text: "If any man despises me, that is his problem. My only concern is not doing or saying anything deserving of contempt.", author: "Marcus Aurelius" },
+  { text: "The first rule is to keep an untroubled spirit...", author: "Marcus Aurelius" },
+  { text: "Never let the future disturb you...", author: "Marcus Aurelius" },
+  { text: "How much time he gains who does not look to see what his neighbour says or does or thinks...", author: "Marcus Aurelius" },
+  { text: "Very little is needed to make a happy life; it is all within yourself in your way of thinking.", author: "Marcus Aurelius" },
+  { text: "Whenever you are about to find fault with someone, ask yourself...", author: "Marcus Aurelius" },
+  { text: "If you are distressed by anything external, the pain is not due to the thing itself...", author: "Marcus Aurelius" },
+  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius" },
+  { text: "Everything we hear is an opinion, everything we see is a perspective, not the truth.", author: "Marcus Aurelius" },
+  { text: "If someone is able to show me that what I think or do is not right, I will happily change...", author: "Marcus Aurelius" },
+  { text: "I have often wondered how it is that every man loves himself more than all the rest...", author: "Marcus Aurelius" },
+  { text: "Begin each day by telling yourself: Today I shall be meeting with interference...", author: "Marcus Aurelius" },
+  { text: "Perfection of character is this: to live each day as if it were your last...", author: "Marcus Aurelius" },
+  { text: "A person’s worth is measured by the worth of what he values.", author: "Marcus Aurelius" },
+  { text: "Observe always that everything is the result of change...", author: "Marcus Aurelius" },
+  { text: "Be like the cliff against which the waves continually break; but it stands firm...", author: "Marcus Aurelius" },
+  { text: "A man must stand erect, not be kept erect by others.", author: "Marcus Aurelius" },
+  { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
+  { text: "If you really want to escape the things that harass you...", author: "Seneca" },
+  { text: "Sometimes even to live is an act of courage.", author: "Seneca" },
+  { text: "Fire tests gold, suffering tests brave men.", author: "Seneca" },
+  { text: "Enjoy present pleasures in such a way as not to injure future ones.", author: "Seneca" },
+  { text: "They lose the day in expectation of the night...", author: "Seneca" },
+  { text: "It is not that we have so little time but that we lose so much.", author: "Seneca" },
+  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
+  { text: "The greatest obstacle to living is expectancy...", author: "Seneca" },
+  { text: "If a man knows not to which port he sails, no wind is favorable.", author: "Seneca" },
+  { text: "Anger, if not restrained, is frequently more hurtful to us than the injury that provokes it.", author: "Seneca" },
+  { text: "True happiness is to enjoy the present...", author: "Seneca" },
+  { text: "All cruelty springs from weakness.", author: "Seneca" },
+  { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca" },
+  { text: "Withdraw into yourself, as far as you can...", author: "Seneca" },
+  { text: "He who spares the wicked injures the good.", author: "Seneca" },
+  { text: "You act like mortals in all that you fear...", author: "Seneca" },
+  { text: "He suffers more than necessary...", author: "Seneca" },
+  { text: "A gift consists not in what is done or given...", author: "Seneca" },
+  { text: "People are frugal in guarding their personal property...", author: "Seneca" },
+  { text: "Every new beginning comes from some other beginning’s end.", author: "Seneca" },
+  { text: "To win true freedom you must be a slave to philosophy.", author: "Seneca" },
+  { text: "It is a rough road that leads to the heights of greatness.", author: "Seneca" },
+  { text: "Often a very old man has no other proof of his long life than his age.", author: "Seneca" },
+  { text: "No man is crushed by misfortune unless he has first been deceived by prosperity.", author: "Seneca" },
+  { text: "Man conquers the world by conquering himself.", author: "Zeno of Citium" },
+  { text: "Better to trip with the feet than with the tongue.", author: "Zeno of Citium" },
+  { text: "Well-being is realized by small steps, but is truly no small thing.", author: "Zeno of Citium" },
+  { text: "Nothing is more hostile to a firm grasp on knowledge than self-deception.", author: "Zeno of Citium" },
+  { text: "The goal of life is living in agreement with Nature.", author: "Zeno of Citium" },
+  { text: "We have two ears and one mouth, so we should listen more than we say.", author: "Zeno of Citium" },
+  { text: "If you lay violent hands on me, you’ll have my body, but my mind will remain with Stilpo.", author: "Zeno of Citium" },
+  { text: "Happiness is a good flow of life.", author: "Zeno of Citium" },
+  { text: "A bad feeling is a commotion of the mind repugnant to reason, and against nature.", author: "Zeno of Citium" },
+  { text: "No loss should be more regrettable to us than losing our time, for it’s irretrievable.", author: "Zeno of Citium" }
 ];
 
-const dp = document.getElementById('datePicker'); 
-dp.value = new Date().toISOString().slice(0, 10); 
-let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
+const dp = document.getElementById('datePicker'); 
+dp.value = new Date().toISOString().slice(0, 10); 
+let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
 let alcoholData = JSON.parse(localStorage.getItem('alcohol') || '{}');
 
 function getHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0; 
-    }
-    return Math.abs(hash);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0; 
+    }
+    return Math.abs(hash);
 }
 
-/* 48/12 TIMER */ 
-let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true; 
+/* 48/12 TIMER */ 
+let pomoTime = 2880, pomoInterval = null, isPomoRunning = false, isWorkPhase = true; 
 
-function chime() { 
-    try { 
-        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-        const osc = ctx.createOscillator(); 
-        const gain = ctx.createGain(); 
-        osc.connect(gain); gain.connect(ctx.destination); 
-        osc.frequency.setValueAtTime(880, ctx.currentTime); 
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5); 
-        osc.start(); osc.stop(ctx.currentTime + 1.5); 
-    } catch(e) {} 
-} 
+function chime() { 
+    try { 
+        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = ctx.createOscillator(); 
+        const gain = ctx.createGain(); 
+        osc.connect(gain); gain.connect(ctx.destination); 
+        osc.frequency.setValueAtTime(880, ctx.currentTime); 
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.5); 
+        osc.start(); osc.stop(ctx.currentTime + 1.5); 
+    } catch(e) {} 
+} 
 
-function togglePomo() { 
-    const btn = document.getElementById('pomoBtn'); 
-    const disp = document.getElementById('pomoDisplay'); 
-    const label = document.getElementById('pomoPhase'); 
-    if (isPomoRunning) { 
-        clearInterval(pomoInterval); isPomoRunning = false; btn.innerText = "Resume"; 
-    } else { 
-        isPomoRunning = true; btn.innerText = "Pause"; 
-        pomoInterval = setInterval(() => { 
-            pomoTime--; 
-            let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60; 
-            disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`; 
-            label.innerText = isWorkPhase ? "Focus (48m)" : "Rest (12m)"; 
-            if (pomoTime <= 0) { 
-                chime(); isWorkPhase = !isWorkPhase; 
-                pomoTime = isWorkPhase ? 2880 : 720; 
-                alert(isWorkPhase ? "Work Start!" : "Break Start!"); 
-            } 
-        }, 1000); 
-    } 
-} 
+function togglePomo() { 
+    const btn = document.getElementById('pomoBtn'); 
+    const disp = document.getElementById('pomoDisplay'); 
+    const label = document.getElementById('pomoPhase'); 
+    if (isPomoRunning) { 
+        clearInterval(pomoInterval); isPomoRunning = false; btn.innerText = "Resume"; 
+    } else { 
+        isPomoRunning = true; btn.innerText = "Pause"; 
+        pomoInterval = setInterval(() => { 
+            pomoTime--; 
+            let mins = Math.floor(pomoTime / 60), secs = pomoTime % 60; 
+            disp.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`; 
+            label.innerText = isWorkPhase ? "Focus (48m)" : "Rest (12m)"; 
+            if (pomoTime <= 0) { 
+                chime(); isWorkPhase = !isWorkPhase; 
+                pomoTime = isWorkPhase ? 2880 : 720; 
+                alert(isWorkPhase ? "Work Start!" : "Break Start!"); 
+            } 
+        }, 1000); 
+    } 
+} 
 
-/* GARDEN LOGIC */ 
-function getPlantEmoji(name, streak) { 
-    if (streak === 0) return null; 
-    if (streak === 1) return '🌱'; 
-    if (streak < 4) return '🪴';  
-    if (streak < 7) return '🍀';      
-    const hash = getHash(name);
-    const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
-    const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
-    const n = name.toLowerCase(); 
-    const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work');
-    return isPhysical ? greenOptions[hash % greenOptions.length] : floralOptions[hash % floralOptions.length];
-} 
+/* GARDEN LOGIC */ 
+function getPlantEmoji(name, streak) { 
+    if (streak === 0) return null; 
+    if (streak === 1) return '🌱'; 
+    if (streak < 4) return '🪴';  
+    if (streak < 7) return '🍀';      
+    const hash = getHash(name);
+    const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
+    const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
+    const n = name.toLowerCase(); 
+    const isPhysical = n.includes('run') || n.includes('gym') || n.includes('work');
+    return isPhysical ? greenOptions[hash % greenOptions.length] : floralOptions[hash % floralOptions.length];
+} 
 
-function render() { 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
-    const g = document.getElementById('garden'); 
-    const hl = document.getElementById('habitList'); 
-    hl.innerHTML = ''; g.innerHTML = ''; 
-    h.forEach((x, i) => { 
-        let s = 0; let curr = new Date(d + "T12:00:00"); 
-        while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); } 
-        hl.innerHTML += `<div class="habit"> 
-            <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div> 
-            <div style="display:flex; align-items:center; gap:12px"> 
-                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; font-size:0.7rem">Delete</button> 
-                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div> 
-            </div> 
-        </div>`; 
-        const emoji = getPlantEmoji(x.name, s); 
-        if (emoji) {
-            const hash = getHash(x.name);
-            const size = 1.8 + (hash % 10) / 10 + 'rem';
-            const shift = (hash % 15) - 7 + 'px';
-            const rotate = (hash % 20) - 10 + 'deg';
-            g.innerHTML += `<div class="plant" style="font-size:${size}; margin-left:${shift}; transform:rotate(${rotate}); animation-delay:${i * 0.2}s;">${emoji}</div>`;
-        } else {
-            g.innerHTML += `<div class="plant-hole"></div>`;
-        }
-    }); 
-    updateCaffeineUI(); 
-    updateAlcoholUI();
-    renderCalendar(); 
-} 
+function render() { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
+    const g = document.getElementById('garden'); 
+    const hl = document.getElementById('habitList'); 
+    hl.innerHTML = ''; g.innerHTML = ''; 
+    h.forEach((x, i) => { 
+        let s = 0; let curr = new Date(d + "T12:00:00"); 
+        while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); } 
+        hl.innerHTML += `<div class="habit"> 
+            <div style="flex:1"><strong>${x.name}</strong><br><small>Streak: ${s}d</small></div> 
+            <div style="display:flex; align-items:center; gap:12px"> 
+                <button onclick="deleteHabit(${i})" style="color:var(--red); background:none; border:none; font-size:0.7rem">Delete</button> 
+                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div> 
+            </div> 
+        </div>`; 
+        const emoji = getPlantEmoji(x.name, s); 
+        if (emoji) {
+            const hash = getHash(x.name);
+            const size = 1.8 + (hash % 10) / 10 + 'rem';
+            const shift = (hash % 15) - 7 + 'px';
+            const rotate = (hash % 20) - 10 + 'deg';
+            g.innerHTML += `<div class="plant" style="font-size:${size}; margin-left:${shift}; transform:rotate(${rotate}); animation-delay:${i * 0.2}s;">${emoji}</div>`;
+        } else {
+            g.innerHTML += `<div class="plant-hole"></div>`;
+        }
+    }); 
+    updateCaffeineUI(); 
+    updateAlcoholUI();
+    renderCalendar(); 
+} 
 
-function updateDailyQuote() { 
-    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); 
-    const q = stoicQuotes[dayOfYear % stoicQuotes.length]; 
-    document.getElementById('dailyQuote').innerText = `"${q.text}"`; 
-    document.getElementById('quoteAuthor').innerText = `— ${q.author}`; 
-} 
+function updateDailyQuote() { 
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); 
+    const q = stoicQuotes[dayOfYear % stoicQuotes.length]; 
+    document.getElementById('dailyQuote').innerText = `"${q.text}"`; 
+    document.getElementById('quoteAuthor').innerText = `— ${q.author}`; 
+} 
 
-/* HABIT LOGIC */ 
-function toggleHabit(idx) { 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
-    const i = h[idx].done.indexOf(d); 
-    i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); 
-    localStorage.setItem('habits', JSON.stringify(h)); render(); 
-} 
-function addHabit() { 
-    const i = document.getElementById('habitInput'); if(!i.value.trim()) return; 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
-    h.push({name: i.value.trim(), done: []}); 
-    localStorage.setItem('habits', JSON.stringify(h)); i.value = ''; render(); 
-} 
-function deleteHabit(idx) { 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
-    if(confirm(`Remove "${h[idx].name}"?`)) { h.splice(idx, 1); localStorage.setItem('habits', JSON.stringify(h)); render(); } 
-} 
+/* HABIT LOGIC */ 
+function toggleHabit(idx) { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'), d = dp.value; 
+    const i = h[idx].done.indexOf(d); 
+    i >= 0 ? h[idx].done.splice(i,1) : h[idx].done.push(d); 
+    localStorage.setItem('habits', JSON.stringify(h)); render(); 
+} 
+function addHabit() { 
+    const i = document.getElementById('habitInput'); if(!i.value.trim()) return; 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
+    h.push({name: i.value.trim(), done: []}); 
+    localStorage.setItem('habits', JSON.stringify(h)); i.value = ''; render(); 
+} 
+function deleteHabit(idx) { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
+    if(confirm(`Remove "${h[idx].name}"?`)) { h.splice(idx, 1); localStorage.setItem('habits', JSON.stringify(h)); render(); } 
+} 
 
-/* CONSUMPTION LOGIC */ 
-function addCaffeine(val) { 
-    const d = dp.value; caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val); 
-    localStorage.setItem('caffeine', JSON.stringify(caffeineData)); updateCaffeineUI(); 
-} 
-function updateCaffeineUI() { 
-    const count = caffeineData[dp.value] || 0; 
-    document.getElementById('caffeineCount').innerText = count; 
-    document.getElementById('caffeineStatus').innerText = `${count} cups today`; 
-} 
-function addAlcohol(val) { 
-    const d = dp.value; alcoholData[d] = Math.max(0, (alcoholData[d] || 0) + val); 
-    localStorage.setItem('alcohol', JSON.stringify(alcoholData)); updateAlcoholUI(); 
-} 
-function updateAlcoholUI() { 
-    const count = alcoholData[dp.value] || 0; 
-    document.getElementById('alcoholCount').innerText = count; 
-    document.getElementById('alcoholStatus').innerText = `${count} units today`; 
-} 
+/* CONSUMPTION LOGIC */ 
+function addCaffeine(val) { 
+    const d = dp.value; caffeineData[d] = Math.max(0, (caffeineData[d] || 0) + val); 
+    localStorage.setItem('caffeine', JSON.stringify(caffeineData)); updateCaffeineUI(); 
+} 
+function updateCaffeineUI() { 
+    const count = caffeineData[dp.value] || 0; 
+    document.getElementById('caffeineCount').innerText = count; 
+    document.getElementById('caffeineStatus').innerText = `${count} cups today`; 
+} 
+function addAlcohol(val) { 
+    const d = dp.value; alcoholData[d] = Math.max(0, (alcoholData[d] || 0) + val); 
+    localStorage.setItem('alcohol', JSON.stringify(alcoholData)); updateAlcoholUI(); 
+} 
+function updateAlcoholUI() { 
+    const count = alcoholData[dp.value] || 0; 
+    document.getElementById('alcoholCount').innerText = count; 
+    document.getElementById('alcoholStatus').innerText = `${count} units today`; 
+} 
 
-/* CALENDAR */ 
-function renderCalendar() { 
-    const cal = document.getElementById('calendar'); 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00"); 
-    const month = curr.getMonth(), year = curr.getFullYear(); 
-    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' }); 
-    cal.innerHTML = ''; 
-    const first = new Date(year, month, 1).getDay(); 
-    const total = new Date(year, month + 1, 0).getDate(); 
-    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>'; 
-    for (let day = 1; day <= total; day++) { 
-        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; 
-        const doneCount = h.filter(x => x.done.includes(dStr)).length; 
-        const dEl = document.createElement('div'); 
-        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`; 
-        if (doneCount > 0) dEl.style.background = doneCount >= h.length ? "var(--g-dark)" : "var(--g-pale)"; 
-        dEl.innerText = day; 
-        dEl.onclick = () => { dp.value = dStr; render(); }; 
-        cal.appendChild(dEl); 
-    } 
-} 
+/* CALENDAR */ 
+function renderCalendar() { 
+    const cal = document.getElementById('calendar'); 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'), curr = new Date(dp.value + "T12:00:00"); 
+    const month = curr.getMonth(), year = curr.getFullYear(); 
+    document.getElementById('monthLabel').innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' }); 
+    cal.innerHTML = ''; 
+    const first = new Date(year, month, 1).getDay(); 
+    const total = new Date(year, month + 1, 0).getDate(); 
+    for (let i = 0; i < first; i++) cal.innerHTML += '<div></div>'; 
+    for (let day = 1; day <= total; day++) { 
+        const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`; 
+        const doneCount = h.filter(x => x.done.includes(dStr)).length; 
+        const dEl = document.createElement('div'); 
+        dEl.className = `cal-day ${dStr === dp.value ? 'active' : ''}`; 
+        if (doneCount > 0) dEl.style.background = doneCount >= h.length ? "var(--g-dark)" : "var(--g-pale)"; 
+        dEl.innerText = day; 
+        dEl.onclick = () => { dp.value = dStr; render(); }; 
+        cal.appendChild(dEl); 
+    } 
+} 
 
-/* AUDIO */ 
+/* AUDIO */ 
 const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
 const tracks = {
-    storm: REPO_URL + 'storm.mp3', waves: REPO_URL + 'waves.mp3',
-    forest: REPO_URL + 'forest.mp3', ambient: REPO_URL + 'ambient.mp3', birds: REPO_URL + 'birdsong.mp3'
+    storm: REPO_URL + 'storm.mp3', waves: REPO_URL + 'waves.mp3',
+    forest: REPO_URL + 'forest.mp3', ambient: REPO_URL + 'ambient.mp3', birds: REPO_URL + 'birdsong.mp3'
 };
 let fadeInterval;
-function playTrack(t, el) { 
-    const player = document.getElementById('naturePlayer');
-    if (fadeInterval) clearInterval(fadeInterval);
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    el.classList.add('playing');
-    if (tracks[t]) {
-        player.src = tracks[t]; player.volume = 0;
-        player.play().then(() => {
-            fadeInterval = setInterval(() => {
-                if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
-                else clearInterval(fadeInterval);
-            }, 100);
-        }).catch(() => console.log("User interaction required"));
-    }
+function playTrack(t, el) { 
+    const player = document.getElementById('naturePlayer');
+    if (fadeInterval) clearInterval(fadeInterval);
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    el.classList.add('playing');
+    if (tracks[t]) {
+        player.src = tracks[t]; player.volume = 0;
+        player.play().then(() => {
+            fadeInterval = setInterval(() => {
+                if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
+                else clearInterval(fadeInterval);
+            }, 100);
+        }).catch(() => console.log("User interaction required"));
+    }
 }
-function stopAudio() { 
-    const player = document.getElementById('naturePlayer');
-    if (fadeInterval) clearInterval(fadeInterval);
-    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    player.pause(); player.volume = 0; player.src = ""; player.load(); 
+function stopAudio() { 
+    const player = document.getElementById('naturePlayer');
+    if (fadeInterval) clearInterval(fadeInterval);
+    document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
+    player.pause(); player.volume = 0; player.src = ""; player.load(); 
 }
 
-/* BOX BREATHING */ 
-let bT, isB = false; 
-function toggleBreathing() { isB ? stopB() : startB(); } 
-function startB() { 
-    isB = true; 
-    const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
-    c.classList.add('animating'); 
-    let step = 0, sec = 4; 
-    const steps = [
-        {t:'Inhale', s:'scale(1.3)', r:'40%'}, {t:'Hold', s:'scale(1.3)', r:'40%'},
-        {t:'Exhale', s:'scale(0.8)', r:'20%'}, {t:'Hold', s:'scale(0.8)', r:'20%'}
-    ]; 
-    const updateUI = () => { l.innerText = steps[step].t; c.style.transform = steps[step].s; c.style.borderRadius = steps[step].r; };
-    updateUI(); co.innerText = sec;
-    bT = setInterval(() => { 
-        sec--; 
-        if (sec < 0) { step = (step + 1) % 4; sec = 4; updateUI(); }
-        co.innerText = sec;
-    }, 1000); 
-} 
-function stopB(){ 
-    isB = false; clearInterval(bT); 
-    const c = document.getElementById('circle');
-    c.classList.remove('animating'); c.style.transform='scale(1)'; 
-    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; 
-} 
+/* BOX BREATHING */ 
+let bT, isB = false; 
+function toggleBreathing() { isB ? stopB() : startB(); } 
+function startB() { 
+    isB = true; 
+    const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
+    c.classList.add('animating'); 
+    let step = 0, sec = 4; 
+    const steps = [
+        {t:'Inhale', s:'scale(1.3)', r:'40%'}, {t:'Hold', s:'scale(1.3)', r:'40%'},
+        {t:'Exhale', s:'scale(0.8)', r:'20%'}, {t:'Hold', s:'scale(0.8)', r:'20%'}
+    ]; 
+    const updateUI = () => { l.innerText = steps[step].t; c.style.transform = steps[step].s; c.style.borderRadius = steps[step].r; };
+    updateUI(); co.innerText = sec;
+    bT = setInterval(() => { 
+        sec--; 
+        if (sec < 0) { step = (step + 1) % 4; sec = 4; updateUI(); }
+        co.innerText = sec;
+    }, 1000); 
+} 
+function stopB(){ 
+    isB = false; clearInterval(bT); 
+    const c = document.getElementById('circle');
+    c.classList.remove('animating'); c.style.transform='scale(1)'; 
+    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; 
+} 
 
-/* NAVIGATION */ 
-const container = document.getElementById('screen-container'); 
-let startX = 0, startY = 0, currentPane = 1, isScrolling = false, isSwiping = false; 
-window.addEventListener('touchstart', e => { 
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
-    isScrolling = false; isSwiping = false; container.style.transition = 'none'; 
-}, { passive: true }); 
-window.addEventListener('touchmove', e => { 
-    const deltaX = e.touches[0].clientX - startX;
-    const deltaY = e.touches[0].clientY - startY;
-    if (!isScrolling && !isSwiping) {
-        if (Math.abs(deltaY) > Math.abs(deltaX)) isScrolling = true; 
-        else if (Math.abs(deltaX) > 10) isSwiping = true; 
-    }
-    if (isSwiping) {
-        if (e.cancelable) e.preventDefault(); 
-        const diff = (deltaX) / window.innerWidth * 33.333; 
-        container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
-    }
-}, { passive: false }); 
-window.addEventListener('touchend', e => { 
-    if (isSwiping) {
-        const diff = e.changedTouches[0].clientX - startX; 
-        if (Math.abs(diff) > 50) { 
-            if (diff < 0 && currentPane < 2) currentPane++; 
-            else if (diff > 0 && currentPane > 0) currentPane--; 
-        }
-    }
-    container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
-    container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
-    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
-}); 
+/* NAVIGATION */ 
+const container = document.getElementById('screen-container'); 
+let startX = 0, startY = 0, currentPane = 1, isScrolling = false, isSwiping = false; 
+window.addEventListener('touchstart', e => { 
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
+    isScrolling = false; isSwiping = false; container.style.transition = 'none'; 
+}, { passive: true }); 
+window.addEventListener('touchmove', e => { 
+    const deltaX = e.touches[0].clientX - startX;
+    const deltaY = e.touches[0].clientY - startY;
+    if (!isScrolling && !isSwiping) {
+        if (Math.abs(deltaY) > Math.abs(deltaX)) isScrolling = true; 
+        else if (Math.abs(deltaX) > 10) isSwiping = true; 
+    }
+    if (isSwiping) {
+        if (e.cancelable) e.preventDefault(); 
+        const diff = (deltaX) / window.innerWidth * 33.333; 
+        container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
+    }
+}, { passive: false }); 
+window.addEventListener('touchend', e => { 
+    if (isSwiping) {
+        const diff = e.changedTouches[0].clientX - startX; 
+        if (Math.abs(diff) > 50) { 
+            if (diff < 0 && currentPane < 2) currentPane++; 
+            else if (diff > 0 && currentPane > 0) currentPane--; 
+        }
+    }
+    container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
+    container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
+}); 
 
-/* DATA IO */ 
-function exportData() { 
-    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
-    const csv = "Type,Item,Date\n" + h.map(x => x.done.map(d => `Habit,"${x.name}",${d}`).join('\n')).join('\n'); 
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='GardenBackup.csv'; a.click(); 
-} 
-function importData(e) { 
-    const reader = new FileReader(); 
-    reader.onload = ev => { 
-        const lines = ev.target.result.split('\n').slice(1); const h = []; 
-        lines.forEach(l => { const p = l.split(','); if(p.length<3)return; const name=p[1].replace(/"/g,''), date=p[2].trim(); let hab=h.find(x=>x.name===name); if(!hab){hab={name,done:[]};h.push(hab);} hab.done.push(date); }); 
-        localStorage.setItem('habits', JSON.stringify(h)); render(); 
-    }; 
-    reader.readAsText(e.target.files[0]); 
-} 
-dp.onchange = render; 
-updateDailyQuote(); 
-render(); 
-</script> 
-</body> 
+/* DATA IO */ 
+function exportData() { 
+    const h = JSON.parse(localStorage.getItem('habits') || '[]'); 
+    const csv = "Type,Item,Date\n" + h.map(x => x.done.map(d => `Habit,"${x.name}",${d}`).join('\n')).join('\n'); 
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download='GardenBackup.csv'; a.click(); 
+} 
+function importData(e) { 
+    const reader = new FileReader(); 
+    reader.onload = ev => { 
+        const lines = ev.target.result.split('\n').slice(1); const h = []; 
+        lines.forEach(l => { const p = l.split(','); if(p.length<3)return; const name=p[1].replace(/"/g,''), date=p[2].trim(); let hab=h.find(x=>x.name===name); if(!hab){hab={name,done:[]};h.push(hab);} hab.done.push(date); }); 
+        localStorage.setItem('habits', JSON.stringify(h)); render(); 
+    }; 
+    reader.readAsText(e.target.files[0]); 
+} 
+dp.onchange = render; 
+updateDailyQuote(); 
+render(); 
+</script> 
+</body> 
 </html>
-
-what else to add?
