@@ -84,7 +84,7 @@
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
         .check.done { background: var(--g-pale); color: #020617; } 
         
-        input, button { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
+        input, button, select { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
         .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;} 
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
@@ -183,14 +183,18 @@
             <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;">— Epictetus</div> 
         </div> 
 
-        <div style="flex: 0.2; min-height: 20px;"></div>
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <select id="breathingPattern" onchange="stopB()" style="background: rgba(255,255,255,0.05); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; margin-bottom: 20px;">
+                <option value="box">Box Breathing (4-4-4-4)</option>
+                <option value="relax">4-7-8 (Deep Relaxation)</option>
+                <option value="equal">Sama Vritti (6-6-6-6)</option>
+            </select>
 
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
-                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Breathe</span> 
+                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Start</span> 
                 <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
             </div> 
-            <p style="color:var(--muted); font-size:0.75rem; text-align:center">Box Breathing 4-4-4-4</p> 
+            <p id="patternDesc" style="color:var(--muted); font-size:0.75rem; text-align:center">Standard Box Breathing</p> 
         </div>
     </div> 
 </div> 
@@ -340,7 +344,7 @@ function getPlantEmoji(name, streak) {
     if (streak === 0) return null; 
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
-    if (streak < 7) return '🍀';      
+    if (streak < 7) return '🍀';       
     const hash = getHash(name);
     const floralOptions = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼'];
     const greenOptions = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
@@ -476,32 +480,84 @@ function stopAudio() {
     player.pause(); player.volume = 0; player.src = ""; player.load(); 
 }
 
-/* BOX BREATHING */ 
+/* ENHANCED BREATHING LOGIC */ 
 let bT, isB = false; 
+
+const breathingModes = {
+    box: {
+        name: "Box Breathing",
+        steps: [
+            {t:'Inhale', s:'scale(1.3)', r:'40%', d:4},
+            {t:'Hold', s:'scale(1.3)', r:'40%', d:4},
+            {t:'Exhale', s:'scale(0.8)', r:'20%', d:4},
+            {t:'Hold', s:'scale(0.8)', r:'20%', d:4}
+        ]
+    },
+    relax: {
+        name: "4-7-8 Sleep",
+        steps: [
+            {t:'Inhale', s:'scale(1.2)', r:'40%', d:4},
+            {t:'Hold', s:'scale(1.2)', r:'40%', d:7},
+            {t:'Exhale', s:'scale(0.7)', r:'15%', d:8}
+        ]
+    },
+    equal: {
+        name: "Sama Vritti",
+        steps: [
+            {t:'Inhale', s:'scale(1.3)', r:'40%', d:6},
+            {t:'Exhale', s:'scale(0.8)', r:'20%', d:6}
+        ]
+    }
+};
+
 function toggleBreathing() { isB ? stopB() : startB(); } 
+
 function startB() { 
     isB = true; 
+    const modeKey = document.getElementById('breathingPattern').value;
+    const mode = breathingModes[modeKey];
     const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
+    
     c.classList.add('animating'); 
-    let step = 0, sec = 4; 
-    const steps = [
-        {t:'Inhale', s:'scale(1.3)', r:'40%'}, {t:'Hold', s:'scale(1.3)', r:'40%'},
-        {t:'Exhale', s:'scale(0.8)', r:'20%'}, {t:'Hold', s:'scale(0.8)', r:'20%'}
-    ]; 
-    const updateUI = () => { l.innerText = steps[step].t; c.style.transform = steps[step].s; c.style.borderRadius = steps[step].r; };
-    updateUI(); co.innerText = sec;
+    document.getElementById('patternDesc').innerText = mode.name;
+    
+    let stepIdx = 0;
+    let sec = mode.steps[stepIdx].d; 
+
+    const updateUI = () => { 
+        const s = mode.steps[stepIdx];
+        l.innerText = s.t; 
+        // Sync transition time with step duration for smooth scaling
+        c.style.transition = `transform ${s.d}s linear, border-radius 1s ease`;
+        c.style.transform = s.s; 
+        c.style.borderRadius = s.r; 
+    };
+
+    updateUI(); 
+    co.innerText = sec;
+
     bT = setInterval(() => { 
         sec--; 
-        if (sec < 0) { step = (step + 1) % 4; sec = 4; updateUI(); }
+        if (sec < 0) { 
+            stepIdx = (stepIdx + 1) % mode.steps.length; 
+            sec = mode.steps[stepIdx].d; 
+            updateUI(); 
+        }
         co.innerText = sec;
     }, 1000); 
 } 
+
 function stopB(){ 
-    isB = false; clearInterval(bT); 
+    isB = false; 
+    clearInterval(bT); 
     const c = document.getElementById('circle');
-    c.classList.remove('animating'); c.style.transform='scale(1)'; 
-    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Tap to Breathe'; 
-} 
+    c.classList.remove('animating'); 
+    c.style.transition = 'transform 0.5s ease';
+    c.style.transform='scale(1)'; 
+    document.getElementById('count').innerText='...'; 
+    document.getElementById('label').innerText='Tap to Start'; 
+    document.getElementById('patternDesc').innerText = "Session Stopped";
+}
 
 /* NAVIGATION */ 
 const container = document.getElementById('screen-container'); 
