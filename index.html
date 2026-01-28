@@ -81,7 +81,11 @@
         @keyframes sway { 0% { transform: rotate(-2deg); } 100% { transform: rotate(3deg); } } 
 
         .pomo-time { font-size: 3.5rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; text-align: center;} 
-        .habit { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
+        
+        /* Compact Habit Layout */
+        .habit { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } 
+        .habit-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-del { width: 32px; height: 32px; background: none; border: none; color: var(--red); opacity: 0.6; padding: 0; font-size: 1.2rem; cursor: pointer; }
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; } 
         .check.done { background: var(--g-pale); color: #020617; } 
         
@@ -269,7 +273,13 @@ function render() {
     habits.forEach((x, i) => {
         let s = 0; let curr = new Date(d + "T12:00:00");
         while(x.done.includes(curr.toISOString().slice(0,10))) { s++; curr.setDate(curr.getDate()-1); }
-        hl.innerHTML += `<div class="habit"><span>${x.name} (${s}d)</span><div><button onclick="habits.splice(${i},1); save(); render()" style="width:auto; background:none; border:none; color:var(--red)">✕</button><button class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</button></div></div>`;
+        hl.innerHTML += `<div class="habit">
+            <span>${x.name} (${s}d)</span>
+            <div class="habit-actions">
+                <button class="btn-del" onclick="if(confirm('Delete?')){habits.splice(${i},1); save(); render();}">✕</button>
+                <div class="check ${x.done.includes(d)?'done':''}" onclick="toggleHabit(${i})">${x.done.includes(d)?'✓':''}</div>
+            </div>
+        </div>`;
         if (x.done.includes(d)) g.innerHTML += `<div class="plant" style="font-size:2rem">🌱</div>`;
     });
     document.getElementById('caffeineCount').innerText = caffeine[d] || 0;
@@ -299,7 +309,6 @@ function saveGratitude() { gratitude[dp.value] = document.getElementById('gratit
 function setMood(v) { mood[dp.value] = v; save(); updateMoodUI(); }
 function updateMoodUI() { document.querySelectorAll('.mood-btn').forEach((b, i) => b.classList.toggle('selected', (i+1) == mood[dp.value])); }
 
-/* CSV ENGINE */
 function exportCSV() {
     let rows = [["Type", "KeyName", "Date", "Value"]];
     habits.forEach(h => h.done.forEach(d => rows.push(["Habit", h.name, d, "1"])));
@@ -307,11 +316,8 @@ function exportCSV() {
     Object.keys(alcohol).forEach(d => rows.push(["Alcohol", "Units", d, alcohol[d]]));
     Object.keys(mood).forEach(d => rows.push(["Mood", "Rating", d, mood[d]]));
     Object.keys(gratitude).forEach(d => rows.push(["Gratitude", "Note", d, `"${gratitude[d].replace(/"/g, '""')}"`]));
-    
-    let csvContent = rows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'Garden_Backup.csv'; a.click();
+    let csv = rows.map(e => e.join(",")).join("\n");
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'Garden_Backup.csv'; a.click();
 }
 
 function importCSV(e) {
@@ -338,7 +344,6 @@ function importCSV(e) {
     reader.readAsText(e.target.files[0]);
 }
 
-/* CALENDAR & POMO */
 function renderCalendar() {
     const cal = document.getElementById('calendar'); const curr = new Date(dp.value + "T12:00:00");
     const m = curr.getMonth(), y = curr.getFullYear();
@@ -367,35 +372,29 @@ function togglePomo() {
     }
 }
 
-/* BREATHING */
 let bInterval, isB = false;
 function toggleBreathing() { isB ? stopB() : startB(); }
 function startB() {
     isB = true; const mode = document.getElementById('breathingPattern').value;
     const c = document.getElementById('circle'), co = document.getElementById('count'), l = document.getElementById('label');
-    let steps = mode === 'box' ? [4,4,4,4] : [4,7,8];
-    let names = mode === 'box' ? ['Inhale', 'Hold', 'Exhale', 'Hold'] : ['Inhale', 'Hold', 'Exhale'];
+    let steps = mode === 'box' ? [4,4,4,4] : [4,7,8], names = mode === 'box' ? ['Inhale', 'Hold', 'Exhale', 'Hold'] : ['Inhale', 'Hold', 'Exhale'];
     let cur = 0, sec = steps[cur];
     const run = () => {
         l.innerText = names[cur]; co.innerText = sec;
-        c.style.transform = names[cur] === 'Inhale' ? 'scale(1.4)' : (names[cur] === 'Exhale' ? 'scale(0.8)' : c.style.transform);
+        c.style.transform = names[cur] === 'Inhale' ? 'scale(1.3)' : (names[cur] === 'Exhale' ? 'scale(0.8)' : c.style.transform);
         bInterval = setInterval(() => {
             sec--; co.innerText = sec;
-            if (sec < 0) {
-                clearInterval(bInterval); cur = (cur + 1) % steps.length; sec = steps[cur]; run();
-            }
+            if (sec < 0) { clearInterval(bInterval); cur = (cur + 1) % steps.length; sec = steps[cur]; run(); }
         }, 1000);
     };
     run();
 }
 function stopB() { isB = false; clearInterval(bInterval); document.getElementById('circle').style.transform = 'scale(1)'; document.getElementById('label').innerText = 'START'; document.getElementById('count').innerText = ''; }
 
-/* AUDIO */
 const REPO = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
 function playTrack(t) { const p = document.getElementById('naturePlayer'); p.src = REPO + t + ".mp3"; p.play(); }
 function stopAudio() { const p = document.getElementById('naturePlayer'); p.pause(); p.src = ""; }
 
-/* NAVIGATION */
 const container = document.getElementById('screen-container');
 let startX = 0, currentPane = 1;
 window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; container.style.transition = 'none'; }, {passive: true});
@@ -410,7 +409,6 @@ window.addEventListener('touchend', e => {
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane));
 });
 
-/* INIT QUOTE */
 const dayIdx = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
 const q = stoicQuotes[dayIdx % stoicQuotes.length];
 document.getElementById('dailyQuote').innerText = `"${q.text}"`;
