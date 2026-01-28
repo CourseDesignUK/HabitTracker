@@ -94,13 +94,13 @@
         .check { width: 36px; height: 36px; border-radius: 12px; border: 2px solid var(--g-pale); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;} 
         .check.done { background: var(--g-pale); color: #020617; } 
         
-        input, button, select { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
+        input, button, select, textarea { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px; font-size: 16px; outline: none; } 
         .btn-primary { background: var(--g-pale); color: #020617; border: none; font-weight: 700; width: 100%; cursor: pointer;} 
         .track-card { background: var(--card); border-radius: 16px; padding: 1rem; margin: 8px 0; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; cursor: pointer; } 
         .track-card.playing { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); } 
         
         .breath-circle { 
-            width: 180px; height: 180px; 
+            width: 140px; height: 140px; 
             border: 4px solid rgba(74, 222, 128, 0.3); 
             border-radius: 32px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -113,6 +113,10 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } 
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); cursor: pointer; } 
         .cal-day.active { border: 2px solid var(--accent); color: #fff; } 
+
+        /* Mood Selector Styling */
+        .mood-btn { background: none; border: 1px solid transparent; font-size: 1.5rem; padding: 8px; cursor: pointer; border-radius: 12px; transition: 0.2s; filter: grayscale(1); }
+        .mood-btn.selected { background: rgba(255,255,255,0.1); border-color: var(--accent); filter: grayscale(0); transform: scale(1.1); }
     </style> 
 </head> 
 <body> 
@@ -193,24 +197,44 @@
     </div> 
 
     <div class="view" style="display: flex; flex-direction: column;"> 
-        <div class="card" style="width: 100%; text-align: center; border-color: var(--accent); padding: 1.5rem;"> 
-            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Daily Reflection</div> 
-            <div id="dailyQuote" style="font-style: italic; font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px; min-height: 60px;"></div> 
-            <div id="quoteAuthor" style="font-size: 0.75rem; color: var(--muted); font-weight: bold;"></div> 
+        <div class="card" style="text-align: center; border-color: var(--accent); padding: 1rem;"> 
+            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 8px;">Daily Reflection</div> 
+            <div id="dailyQuote" style="font-style: italic; font-size: 0.85rem; line-height: 1.4; margin-bottom: 8px; min-height: 40px;"></div> 
+            <div id="quoteAuthor" style="font-size: 0.7rem; color: var(--muted); font-weight: bold;"></div> 
         </div> 
 
-        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <select id="breathingPattern" onchange="stopB()" style="background: rgba(255,255,255,0.05); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; margin-bottom: 20px;">
+        <div class="card">
+            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Things to be grateful for</div>
+            <textarea id="gratitudeInput" 
+                style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; color: white; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: none;" 
+                rows="3" 
+                placeholder="Today, I am thankful for..."
+                oninput="saveGratitude()"></textarea>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px;">Today's Mood</div>
+            <div style="display: flex; justify-content: space-around;">
+                <button class="mood-btn" onclick="setMood(1)" id="mood1">😔</button>
+                <button class="mood-btn" onclick="setMood(2)" id="mood2">😐</button>
+                <button class="mood-btn" onclick="setMood(3)" id="mood3">🙂</button>
+                <button class="mood-btn" onclick="setMood(4)" id="mood4">😊</button>
+                <button class="mood-btn" onclick="setMood(5)" id="mood5">🤩</button>
+            </div>
+        </div>
+
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom:0">
+            <select id="breathingPattern" onchange="stopB()" style="background: rgba(255,255,255,0.05); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; margin-bottom: 15px;">
                 <option value="box">Box Breathing (4-4-4-4)</option>
                 <option value="relax">4-7-8 (Deep Relaxation)</option>
                 <option value="equal">Sama Vritti (6-6-6-6)</option>
             </select>
 
-            <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 20px;"> 
-                <span id="label" style="text-transform:uppercase; font-size:0.65rem; color:var(--g-pale)">Tap to Start</span> 
-                <div style="font-size:3.5rem; font-weight:800; margin:5px 0" id="count">...</div> 
+            <div class="breath-circle" id="circle" onclick="toggleBreathing()" style="margin-bottom: 15px;"> 
+                <span id="label" style="text-transform:uppercase; font-size:0.6rem; color:var(--g-pale)">Start</span> 
+                <div style="font-size:2.5rem; font-weight:800; margin:2px 0" id="count">...</div> 
             </div> 
-            <p id="patternDesc" style="color:var(--muted); font-size:0.75rem; text-align:center">Standard Box Breathing</p> 
+            <p id="patternDesc" style="color:var(--muted); font-size:0.7rem; text-align:center; margin:0">Breathe with intention</p> 
         </div>
     </div> 
 </div> 
@@ -218,94 +242,35 @@
 <audio id="naturePlayer" loop></audio> 
 
 <script> 
-/* FULL DATA & QUOTES */ 
+/* DATA & QUOTES */ 
 const stoicQuotes = [
   { text: "It’s not what happens to you, but how you react to it that matters.", author: "Epictetus" },
   { text: "He who laughs at himself never runs out of things to laugh at.", author: "Epictetus" },
   { text: "Only the educated are free.", author: "Epictetus" },
-  { text: "Some things are in our control and others not. Whatever are our own actions are in our control.", author: "Epictetus" },
+  { text: "Some things are in our control and others not.", author: "Epictetus" },
   { text: "The greater the difficulty, the more glory in surmounting it.", author: "Epictetus" },
-  { text: "He is a wise man who does not grieve for things he has not, but rejoices for those which he has.", author: "Epictetus" },
   { text: "Seek not the good in external things; seek it in yourselves.", author: "Epictetus" },
-  { text: "People are not disturbed by things, but by the views they take of them.", author: "Epictetus" },
-  { text: "Any person capable of angering you becomes your master.", author: "Epictetus" },
-  { text: "Wealth consists not in having great possessions, but in having few wants.", author: "Epictetus" },
   { text: "Don’t explain your philosophy. Embody it.", author: "Epictetus" },
-  { text: "To accuse others for one’s own misfortune is a sign of want of education.", author: "Epictetus" },
   { text: "There is only one way to happiness: to cease worrying about things beyond our will.", author: "Epictetus" },
-  { text: "If you want to improve, be content to be thought foolish and stupid.", author: "Epictetus" },
-  { text: "The key is to keep company only with people who uplift you.", author: "Epictetus" },
-  { text: "If you would be a reader, read; if a writer, write.", author: "Epictetus" },
-  { text: "No man is free who is not master of himself.", author: "Epictetus" },
-  { text: "Remember, it is not enough to be hit or insulted to be harmed, you must believe it.", author: "Epictetus" },
-  { text: "A ship should not ride on a single anchor, nor life on a single hope.", author: "Epictetus" },
-  { text: "Demand not that things happen as you wish, but wish them to happen as they do.", author: "Epictetus" },
-  { text: "Events do not just happen, but arrive by appointment.", author: "Epictetus" },
-  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+  { text: "You have power over your mind — not outside events.", author: "Marcus Aurelius" },
   { text: "The soul becomes dyed with the colour of its thoughts.", author: "Marcus Aurelius" },
-  { text: "Death hangs over you. While you live, while it is in your power, be good.", author: "Marcus Aurelius" },
-  { text: "Dwell on the beauty of life. Watch the stars, and see yourself running with them.", author: "Marcus Aurelius" },
-  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
+  { text: "Dwell on the beauty of life. Watch the stars.", author: "Marcus Aurelius" },
   { text: "If it is not right do not do it; if it is not true do not say it.", author: "Marcus Aurelius" },
-  { text: "If any man despises me, that is his problem. My only concern is my own actions.", author: "Marcus Aurelius" },
-  { text: "The first rule is to keep an untroubled spirit. The second is to look things in the face.", author: "Marcus Aurelius" },
-  { text: "Never let the future disturb you. You will meet it with the same weapons of reason.", author: "Marcus Aurelius" },
-  { text: "How much time he gains who does not look to see what his neighbour says or does.", author: "Marcus Aurelius" },
-  { text: "Very little is needed to make a happy life; it is all within yourself.", author: "Marcus Aurelius" },
-  { text: "Whenever you are about to find fault with someone, ask: What fault of mine is like this?", author: "Marcus Aurelius" },
-  { text: "If you are distressed by anything external, the pain is not due to the thing itself.", author: "Marcus Aurelius" },
-  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius" },
-  { text: "Everything we hear is an opinion, everything we see is a perspective, not the truth.", author: "Marcus Aurelius" },
-  { text: "If someone shows me I am wrong, I will happily change. I seek the truth.", author: "Marcus Aurelius" },
-  { text: "I have often wondered how every man loves himself more than all others, yet values others' opinions more.", author: "Marcus Aurelius" },
-  { text: "Begin each day by telling yourself: Today I shall be meeting with interference and ingratitude.", author: "Marcus Aurelius" },
-  { text: "Perfection of character is this: to live each day as if it were your last.", author: "Marcus Aurelius" },
-  { text: "A person’s worth is measured by the worth of what he values.", author: "Marcus Aurelius" },
-  { text: "Observe always that everything is the result of change.", author: "Marcus Aurelius" },
-  { text: "Be like the cliff against which the waves continually break; but it stands firm.", author: "Marcus Aurelius" },
-  { text: "A man must stand erect, not be kept erect by others.", author: "Marcus Aurelius" },
+  { text: "Very little is needed to make a happy life.", author: "Marcus Aurelius" },
   { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
-  { text: "If you really want to escape the things that harass you, you need to be in a different mind.", author: "Seneca" },
   { text: "Sometimes even to live is an act of courage.", author: "Seneca" },
-  { text: "Fire tests gold, suffering tests brave men.", author: "Seneca" },
-  { text: "Enjoy present pleasures in such a way as not to injure future ones.", author: "Seneca" },
-  { text: "They lose the day in expectation of the night, and the night in fear of the dawn.", author: "Seneca" },
-  { text: "It is not that we have so little time, but that we lose so much.", author: "Seneca" },
   { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
-  { text: "The greatest obstacle to living is expectancy, which hangs upon tomorrow and loses today.", author: "Seneca" },
-  { text: "If a man knows not to which port he sails, no wind is favorable.", author: "Seneca" },
-  { text: "Anger, if not restrained, is frequently more hurtful to us than the injury that provokes it.", author: "Seneca" },
-  { text: "True happiness is to enjoy the present, without anxious dependence upon the future.", author: "Seneca" },
-  { text: "All cruelty springs from weakness.", author: "Seneca" },
   { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca" },
-  { text: "Withdraw into yourself, as far as you can.", author: "Seneca" },
-  { text: "He who spares the wicked injures the good.", author: "Seneca" },
-  { text: "You act like mortals in all that you fear, and like immortals in all that you desire.", author: "Seneca" },
   { text: "He suffers more than necessary, who suffers before it is necessary.", author: "Seneca" },
-  { text: "A gift consists not in what is done or given, but in the intention of the giver.", author: "Seneca" },
-  { text: "Every new beginning comes from some other beginning’s end.", author: "Seneca" },
-  { text: "To win true freedom you must be a slave to philosophy.", author: "Seneca" },
-  { text: "It is a rough road that leads to the heights of greatness.", author: "Seneca" },
-  { text: "Often a very old man has no other proof of his long life than his age.", author: "Seneca" },
-  { text: "No man is crushed by misfortune unless he has first been deceived by prosperity.", author: "Seneca" },
-  { text: "Man conquers the world by conquering himself.", author: "Zeno of Citium" },
-  { text: "Better to trip with the feet than with the tongue.", author: "Zeno of Citium" },
-  { text: "Well-being is realized by small steps, but is truly no small thing.", author: "Zeno of Citium" },
-  { text: "Nothing is more hostile to a firm grasp on knowledge than self-deception.", author: "Zeno of Citium" },
-  { text: "The goal of life is living in agreement with Nature.", author: "Zeno of Citium" },
-  { text: "We have two ears and one mouth, so we should listen more than we say.", author: "Zeno of Citium" },
-  { text: "Happiness is a good flow of life.", author: "Zeno of Citium" },
-  { text: "No loss should be more regrettable to us than losing our time, for it’s irretrievable.", author: "Zeno of Citium" },
-  { text: "Fate is the endless chain of causation, whereby things are; the reason or formula by which the world goes on.", author: "Zeno of Citium" },
-  { text: "The end may be defined as life in accordance with nature.", author: "Zeno of Citium" },
-  { text: "Steel your sensibilities, so that life shall hurt you as little as possible.", author: "Zeno of Citium" },
-  { text: "All things are parts of one single system, which is called Nature.", author: "Zeno of Citium" }
+  { text: "Well-being is realized by small steps, but is truly no small thing.", author: "Zeno" }
 ];
 
 const dp = document.getElementById('datePicker'); 
 dp.value = new Date().toISOString().slice(0, 10); 
 let caffeineData = JSON.parse(localStorage.getItem('caffeine') || '{}'); 
 let alcoholData = JSON.parse(localStorage.getItem('alcohol') || '{}');
+let gratitudeData = JSON.parse(localStorage.getItem('gratitude') || '{}');
+let moodData = JSON.parse(localStorage.getItem('mood') || '{}');
 
 function getHash(str) {
     let hash = 0;
@@ -395,22 +360,19 @@ function render() {
     }); 
     updateCaffeineUI(); 
     updateAlcoholUI();
+    updateGratitudeUI();
+    updateMoodUI();
     renderCalendar(); 
 } 
 
 function updateDailyQuote() { 
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000); 
     const q = stoicQuotes[dayOfYear % stoicQuotes.length]; 
-    
     document.getElementById('dailyQuote').innerText = `"${q.text}"`; 
     document.getElementById('quoteAuthor').innerText = `— ${q.author}`; 
-    
     document.getElementById('splashQuote').innerText = `"${q.text}"`; 
     document.getElementById('splashAuthor').innerText = `— ${q.author}`;
-    
-    setTimeout(() => {
-        document.getElementById('splash').classList.add('hidden');
-    }, 3200);
+    setTimeout(() => { document.getElementById('splash').classList.add('hidden'); }, 3200);
 } 
 
 /* HABIT LOGIC */ 
@@ -451,6 +413,26 @@ function updateAlcoholUI() {
     document.getElementById('alcoholStatus').innerText = `${count} units today`; 
 } 
 
+/* GRATITUDE & MOOD LOGIC */
+function saveGratitude() {
+    gratitudeData[dp.value] = document.getElementById('gratitudeInput').value;
+    localStorage.setItem('gratitude', JSON.stringify(gratitudeData));
+}
+function updateGratitudeUI() {
+    document.getElementById('gratitudeInput').value = gratitudeData[dp.value] || "";
+}
+function setMood(val) {
+    moodData[dp.value] = val;
+    localStorage.setItem('mood', JSON.stringify(moodData));
+    updateMoodUI();
+}
+function updateMoodUI() {
+    const val = moodData[dp.value] || 0;
+    document.querySelectorAll('.mood-btn').forEach((b, i) => {
+        b.classList.toggle('selected', (i + 1) === val);
+    });
+}
+
 /* CALENDAR */ 
 function renderCalendar() { 
     const cal = document.getElementById('calendar'); 
@@ -475,141 +457,78 @@ function renderCalendar() {
 
 /* AUDIO */ 
 const REPO_URL = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
-const tracks = {
-    storm: REPO_URL + 'storm.mp3', waves: REPO_URL + 'waves.mp3',
-    forest: REPO_URL + 'forest.mp3', ambient: REPO_URL + 'ambient.mp3', birds: REPO_URL + 'birdsong.mp3'
-};
+const tracks = { storm: REPO_URL+'storm.mp3', waves: REPO_URL+'waves.mp3', forest: REPO_URL+'forest.mp3', ambient: REPO_URL+'ambient.mp3', birds: REPO_URL+'birdsong.mp3' };
 let fadeInterval;
 function playTrack(t, el) { 
     const player = document.getElementById('naturePlayer');
     if (fadeInterval) clearInterval(fadeInterval);
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
     el.classList.add('playing');
-    if (tracks[t]) {
-        player.src = tracks[t]; player.volume = 0;
-        player.play().then(() => {
-            fadeInterval = setInterval(() => {
-                if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
-                else clearInterval(fadeInterval);
-            }, 100);
-        }).catch(() => console.log("User interaction required"));
-    }
+    player.src = tracks[t]; player.volume = 0;
+    player.play().then(() => {
+        fadeInterval = setInterval(() => {
+            if (player.volume < 0.4) player.volume = Math.min(0.45, player.volume + 0.05);
+            else clearInterval(fadeInterval);
+        }, 100);
+    }).catch(() => console.log("Interaction required"));
 }
 function stopAudio() { 
     const player = document.getElementById('naturePlayer');
     if (fadeInterval) clearInterval(fadeInterval);
     document.querySelectorAll('.track-card').forEach(c => c.classList.remove('playing'));
-    player.pause(); player.volume = 0; player.src = ""; player.load(); 
+    player.pause(); player.src = ""; 
 }
 
-/* ENHANCED BREATHING LOGIC */ 
+/* BREATHING */ 
 let bT, isB = false; 
-
 const breathingModes = {
-    box: {
-        name: "Box Breathing",
-        steps: [
-            {t:'Inhale', s:'scale(1.3)', r:'40%', d:4},
-            {t:'Hold', s:'scale(1.3)', r:'40%', d:4},
-            {t:'Exhale', s:'scale(0.8)', r:'20%', d:4},
-            {t:'Hold', s:'scale(0.8)', r:'20%', d:4}
-        ]
-    },
-    relax: {
-        name: "4-7-8 Sleep",
-        steps: [
-            {t:'Inhale', s:'scale(1.2)', r:'40%', d:4},
-            {t:'Hold', s:'scale(1.2)', r:'40%', d:7},
-            {t:'Exhale', s:'scale(0.7)', r:'15%', d:8}
-        ]
-    },
-    equal: {
-        name: "Sama Vritti",
-        steps: [
-            {t:'Inhale', s:'scale(1.3)', r:'40%', d:6},
-            {t:'Exhale', s:'scale(0.8)', r:'20%', d:6}
-        ]
-    }
+    box: { name: "Box Breathing", steps: [{t:'Inhale', s:'scale(1.2)', r:'40%', d:4}, {t:'Hold', s:'scale(1.2)', r:'40%', d:4}, {t:'Exhale', s:'scale(0.8)', r:'20%', d:4}, {t:'Hold', s:'scale(0.8)', r:'20%', d:4}] },
+    relax: { name: "4-7-8 Sleep", steps: [{t:'Inhale', s:'scale(1.1)', r:'40%', d:4}, {t:'Hold', s:'scale(1.1)', r:'40%', d:7}, {t:'Exhale', s:'scale(0.7)', r:'15%', d:8}] },
+    equal: { name: "Sama Vritti", steps: [{t:'Inhale', s:'scale(1.2)', r:'40%', d:6}, {t:'Exhale', s:'scale(0.8)', r:'20%', d:6}] }
 };
-
 function toggleBreathing() { isB ? stopB() : startB(); } 
-
 function startB() { 
     isB = true; 
-    const modeKey = document.getElementById('breathingPattern').value;
-    const mode = breathingModes[modeKey];
+    const mode = breathingModes[document.getElementById('breathingPattern').value];
     const l = document.getElementById('label'), c = document.getElementById('circle'), co = document.getElementById('count'); 
-    
     c.classList.add('animating'); 
     document.getElementById('patternDesc').innerText = mode.name;
-    
-    let stepIdx = 0;
-    let sec = mode.steps[stepIdx].d; 
-
+    let stepIdx = 0, sec = mode.steps[stepIdx].d; 
     const updateUI = () => { 
         const s = mode.steps[stepIdx];
         l.innerText = s.t; 
         c.style.transition = `transform ${s.d}s linear, border-radius 1s ease`;
-        c.style.transform = s.s; 
-        c.style.borderRadius = s.r; 
+        c.style.transform = s.s; c.style.borderRadius = s.r; 
     };
-
-    updateUI(); 
-    co.innerText = sec;
-
+    updateUI(); co.innerText = sec;
     bT = setInterval(() => { 
         sec--; 
         if (sec < 0) { 
             stepIdx = (stepIdx + 1) % mode.steps.length; 
-            sec = mode.steps[stepIdx].d; 
-            updateUI(); 
+            sec = mode.steps[stepIdx].d; updateUI(); 
         }
         co.innerText = sec;
     }, 1000); 
 } 
-
 function stopB(){ 
-    isB = false; 
-    clearInterval(bT); 
+    isB = false; clearInterval(bT); 
     const c = document.getElementById('circle');
-    c.classList.remove('animating'); 
-    c.style.transition = 'transform 0.5s ease';
-    c.style.transform='scale(1)'; 
-    document.getElementById('count').innerText='...'; 
-    document.getElementById('label').innerText='Tap to Start'; 
-    document.getElementById('patternDesc').innerText = "Session Stopped";
+    c.classList.remove('animating'); c.style.transform='scale(1)'; 
+    document.getElementById('count').innerText='...'; document.getElementById('label').innerText='Start'; 
 }
 
 /* NAVIGATION */ 
 const container = document.getElementById('screen-container'); 
 let startX = 0, startY = 0, currentPane = 1, isScrolling = false, isSwiping = false; 
-window.addEventListener('touchstart', e => { 
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY; 
-    isScrolling = false; isSwiping = false; container.style.transition = 'none'; 
-}, { passive: true }); 
+window.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; isScrolling = false; isSwiping = false; container.style.transition = 'none'; }, { passive: true }); 
 window.addEventListener('touchmove', e => { 
-    const deltaX = e.touches[0].clientX - startX;
-    const deltaY = e.touches[0].clientY - startY;
-    if (!isScrolling && !isSwiping) {
-        if (Math.abs(deltaY) > Math.abs(deltaX)) isScrolling = true; 
-        else if (Math.abs(deltaX) > 10) isSwiping = true; 
-    }
-    if (isSwiping) {
-        if (e.cancelable) e.preventDefault(); 
-        const diff = (deltaX) / window.innerWidth * 33.333; 
-        container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; 
-    }
+    const deltaX = e.touches[0].clientX - startX; const deltaY = e.touches[0].clientY - startY;
+    if (!isScrolling && !isSwiping) { if (Math.abs(deltaY) > Math.abs(deltaX)) isScrolling = true; else if (Math.abs(deltaX) > 10) isSwiping = true; }
+    if (isSwiping) { if (e.cancelable) e.preventDefault(); const diff = (deltaX) / window.innerWidth * 33.333; container.style.transform = `translateX(${currentPane * -33.3333 + diff}%)`; }
 }, { passive: false }); 
 window.addEventListener('touchend', e => { 
-    if (isSwiping) {
-        const diff = e.changedTouches[0].clientX - startX; 
-        if (Math.abs(diff) > 50) { 
-            if (diff < 0 && currentPane < 2) currentPane++; 
-            else if (diff > 0 && currentPane > 0) currentPane--; 
-        }
-    }
-    container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; 
-    container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
+    if (isSwiping) { const diff = e.changedTouches[0].clientX - startX; if (Math.abs(diff) > 50) { if (diff < 0 && currentPane < 2) currentPane++; else if (diff > 0 && currentPane > 0) currentPane--; } }
+    container.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)'; container.style.transform = `translateX(${currentPane * -33.3333}%)`; 
     document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentPane)); 
 }); 
 
