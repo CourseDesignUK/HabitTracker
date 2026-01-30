@@ -1,25 +1,43 @@
-const CACHE_NAME = 'mind-garden-v1';
+const CACHE_NAME = 'habit-tracker-v1';
 const ASSETS = [
   './',
   './index.html',
-  './icon.png',
+  './manifest.json',
+  './sw.js',
+  // Audio files
+  './ambient.mp3',
+  './birdsong.mp3',
+  './forest.mp3',
   './storm.mp3',
   './waves.mp3',
-  './forest.mp3',
-  './ambient.mp3',
-  './birdsong.mp3'
+  // Add any CSS or JS files here if they are separate
 ];
 
-// Install: Cache all UI and Audio files
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+// Install Event - Caching Assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-// Fetch: Serve from cache if offline
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+// Activate Event - Clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    })
+  );
+});
+
+// Fetch Event - Serve from Cache
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
