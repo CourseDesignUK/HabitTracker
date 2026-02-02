@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "tree.png",
+      "src": "Tree.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "tree.png",
+      "src": "Tree.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
