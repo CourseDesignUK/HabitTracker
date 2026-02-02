@@ -1,21 +1,24 @@
 {
-  "short_name": "Garden",
-  "name": "Mind Garden Tracker",
-  "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
+  "name": "Mind Garden",
+  "short_name": "Mind Garden",
+  "description": "A Stoic-inspired habit tracker and focus garden.",
   "start_url": "./index.html",
+  "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
-  "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "tree.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "tree.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
