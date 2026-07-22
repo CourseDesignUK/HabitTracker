@@ -124,6 +124,12 @@
              <button onclick="playTrack('waves')" style="margin-bottom:5px">🌊 Ocean Waves</button>
              <button onclick="playTrack('forest')" style="margin-bottom:5px">🌲 Deep Forest</button>
         </div>
+        <div class="card" style="margin-top:10px">
+            <small style="color:var(--accent); font-weight:bold; display:block; margin-bottom:8px">LOCAL AUDIO</small>
+            <button onclick="document.getElementById('localAudioIn').click()" style="margin-bottom:8px">📁 Select Local MP3</button>
+            <input type="file" id="localAudioIn" accept="audio/mp3,audio/*" style="display:none" onchange="loadLocalAudio(event)">
+            <div id="localAudioName" style="font-size:0.8rem; color:var(--muted); text-align:center; word-break:break-all"></div>
+        </div>
     </div> 
 
     <div class="view"> 
@@ -430,8 +436,36 @@ function startB() {
 function stopB() { isB = false; clearInterval(bInterval); document.getElementById('circle').style.transform = 'scale(1)'; document.getElementById('label').innerText = 'START'; document.getElementById('count').innerText = ''; }
 
 const REPO = "https://raw.githubusercontent.com/CourseDesignUK/HabitTracker/main/";
-function playTrack(t) { const p = document.getElementById('naturePlayer'); p.src = REPO + t + ".mp3"; p.play(); }
-function stopAudio() { const p = document.getElementById('naturePlayer'); p.pause(); p.src = ""; }
+let localAudioUrl = null;
+
+function playTrack(t) { 
+    const p = document.getElementById('naturePlayer'); 
+    p.src = REPO + t + ".mp3"; 
+    p.play(); 
+}
+
+function loadLocalAudio(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (localAudioUrl) {
+        URL.revokeObjectURL(localAudioUrl);
+    }
+    
+    localAudioUrl = URL.createObjectURL(file);
+    const p = document.getElementById('naturePlayer');
+    p.src = localAudioUrl;
+    p.play();
+    
+    document.getElementById('localAudioName').innerText = `Playing: ${file.name}`;
+}
+
+function stopAudio() { 
+    const p = document.getElementById('naturePlayer'); 
+    p.pause(); 
+    p.src = ""; 
+    document.getElementById('localAudioName').innerText = "";
+}
 
 const container = document.getElementById('screen-container');
 let startX = 0, currentPane = 1;
