@@ -4,7 +4,7 @@
     <meta charset="UTF-8" /> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#020617">
+    <meta name="theme-color" content="#020617">
     <title>Mind Garden</title> 
     
     <meta name="apple-mobile-web-app-capable" content="yes"> 
@@ -24,6 +24,7 @@
             --soil-bottom: rgba(45, 26, 12, 0.4); 
             --coffee: #92400e;
             --wine: #4338ca;
+            --water: #0284c7;
         } 
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; } 
@@ -135,6 +136,14 @@
     <div class="view"> 
         <div class="card"><strong>Your Garden</strong><div id="garden" class="garden"></div></div> 
         <div class="card"> 
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
+                <div><strong>Water</strong><br><small id="waterStatus">0 ml</small></div> 
+                <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
+                    <button onclick="addWater(-1)" style="width:40px;">−</button> 
+                    <span id="waterCount">0</span> 
+                    <button onclick="addWater(1)" style="width:40px; background:var(--water);">+</button> 
+                </div> 
+            </div> 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
                 <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups</small></div> 
                 <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
@@ -276,6 +285,7 @@ const dp = document.getElementById('datePicker');
 dp.value = new Date().toISOString().slice(0, 10);
 
 let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+let water = JSON.parse(localStorage.getItem('water') || '{}');
 let caffeine = JSON.parse(localStorage.getItem('caffeine') || '{}');
 let alcohol = JSON.parse(localStorage.getItem('alcohol') || '{}');
 let gratitude = JSON.parse(localStorage.getItem('gratitude') || '{}');
@@ -291,7 +301,7 @@ function getPlantEmoji(name, streak) {
     if (streak === 0) return null; 
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
-    if (streak < 7) return '🍀';       
+    if (streak < 7) return '🍀';      
     const hash = getHash(name);
     const floral = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼']; 
     const greens = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
@@ -326,6 +336,10 @@ function render() {
             g.innerHTML += `<div class="plant-hole"></div>`;
         }
     });
+
+    const wUnits = water[d] || 0;
+    document.getElementById('waterCount').innerText = wUnits;
+    document.getElementById('waterStatus').innerText = `${wUnits * 250} ml (${wUnits} unit${wUnits === 1 ? '' : 's'})`;
     document.getElementById('caffeineCount').innerText = caffeine[d] || 0;
     document.getElementById('alcoholCount').innerText = alcohol[d] || 0;
     document.getElementById('gratitudeInput').value = gratitude[d] || "";
@@ -334,6 +348,7 @@ function render() {
 
 function save() {
     localStorage.setItem('habits', JSON.stringify(habits));
+    localStorage.setItem('water', JSON.stringify(water));
     localStorage.setItem('caffeine', JSON.stringify(caffeine));
     localStorage.setItem('alcohol', JSON.stringify(alcohol));
     localStorage.setItem('gratitude', JSON.stringify(gratitude));
@@ -347,6 +362,7 @@ function toggleHabit(i) {
 }
 
 function addHabit() { const val = document.getElementById('habitInput').value; if(val) habits.push({name:val, done:[]}); document.getElementById('habitInput').value=''; save(); render(); }
+function addWater(v) { water[dp.value] = Math.max(0, (water[dp.value] || 0) + v); save(); render(); }
 function addCaffeine(v) { caffeine[dp.value] = Math.max(0, (caffeine[dp.value] || 0) + v); save(); render(); }
 function addAlcohol(v) { alcohol[dp.value] = Math.max(0, (alcohol[dp.value] || 0) + v); save(); render(); }
 function saveGratitude() { gratitude[dp.value] = document.getElementById('gratitudeInput').value; save(); }
@@ -356,6 +372,7 @@ function updateMoodUI() { document.querySelectorAll('.mood-btn').forEach((b, i) 
 function exportCSV() {
     let rows = [["Type", "KeyName", "Date", "Value"]];
     habits.forEach(h => h.done.forEach(d => rows.push(["Habit", h.name, d, "1"])));
+    Object.keys(water).forEach(d => rows.push(["Water", "250ml Units", d, water[d]]));
     Object.keys(caffeine).forEach(d => rows.push(["Caffeine", "Cups", d, caffeine[d]]));
     Object.keys(alcohol).forEach(d => rows.push(["Alcohol", "Units", d, alcohol[d]]));
     Object.keys(mood).forEach(d => rows.push(["Mood", "Rating", d, mood[d]]));
@@ -368,7 +385,7 @@ function importCSV(e) {
     const reader = new FileReader();
     reader.onload = (ev) => {
         const lines = ev.target.result.split("\n").slice(1);
-        habits = []; caffeine = {}; alcohol = {}; mood = {}; gratitude = {};
+        habits = []; water = {}; caffeine = {}; alcohol = {}; mood = {}; gratitude = {};
         lines.forEach(line => {
             const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
             if (parts.length < 4) return;
@@ -378,6 +395,7 @@ function importCSV(e) {
                 if (!h) { h = {name: name, done: []}; habits.push(h); }
                 h.done.push(date);
             }
+            else if (type === "Water") water[date] = parseInt(val);
             else if (type === "Caffeine") caffeine[date] = parseInt(val);
             else if (type === "Alcohol") alcohol[date] = parseInt(val);
             else if (type === "Mood") mood[date] = parseInt(val);
