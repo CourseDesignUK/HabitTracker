@@ -99,6 +99,9 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } 
         .cal-day { aspect-ratio: 1; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .cal-day.active { border: 2px solid var(--accent); }
+
+        .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 30px; margin: 0 10px; flex-grow: 1; justify-content: center; }
+        .bar { width: 6px; border-radius: 2px 2px 0 0; min-height: 4px; transition: height 0.3s; }
     </style> 
 </head> 
 <body> 
@@ -137,7 +140,8 @@
         <div class="card"><strong>Your Garden</strong><div id="garden" class="garden"></div></div> 
         <div class="card"> 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
-                <div><strong>Water</strong><br><small id="waterStatus">0 ml</small></div> 
+                <div style="min-width: 110px; white-space: nowrap;"><strong>Water</strong><br><small id="waterStatus">0 ml</small></div> 
+                <div id="waterChart" class="mini-chart"></div>
                 <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
                     <button onclick="addWater(-1)" style="width:40px;">−</button> 
                     <span id="waterCount">0</span> 
@@ -145,7 +149,8 @@
                 </div> 
             </div> 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
-                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 mg (0 units)</small></div> 
+                <div style="min-width: 110px; white-space: nowrap;"><strong>Caffeine</strong><br><small id="caffeineStatus">0 mg (0 units)</small></div> 
+                <div id="caffeineChart" class="mini-chart"></div>
                 <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
                     <button onclick="addCaffeine(-1)" style="width:40px;">−</button> 
                     <span id="caffeineCount">0</span> 
@@ -153,7 +158,8 @@
                 </div> 
             </div> 
             <div style="display:flex; justify-content:space-between; align-items:center"> 
-                <div><strong>Alcohol</strong><br><small id="alcoholStatus">0 units</small></div> 
+                <div style="min-width: 110px; white-space: nowrap;"><strong>Alcohol</strong><br><small id="alcoholStatus">0 units</small></div> 
+                <div id="alcoholChart" class="mini-chart"></div>
                 <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
                     <button onclick="addAlcohol(-1)" style="width:40px;">−</button> 
                     <span id="alcoholCount">0</span> 
@@ -310,6 +316,29 @@ function getPlantEmoji(name, streak) {
     return isPhysical ? greens[hash % greens.length] : floral[hash % floral.length];
 }
 
+function renderMiniChart(containerId, dataObj, selectedDateStr, colorVar) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    let maxVal = 1;
+    const days = [];
+    
+    for(let i=4; i>=0; i--) {
+        let tempDate = new Date(selectedDateStr + "T12:00:00");
+        tempDate.setDate(tempDate.getDate() - i);
+        let ds = tempDate.toISOString().slice(0,10);
+        let val = dataObj[ds] || 0;
+        days.push({date: ds, val: val});
+        if (val > maxVal) maxVal = val;
+    }
+
+    days.forEach((day, idx) => {
+        let h = Math.max(10, (day.val / Math.max(maxVal, 5)) * 100);
+        let isTarget = (idx === 4);
+        let bg = isTarget ? `var(${colorVar})` : 'var(--muted)';
+        container.innerHTML += `<div class="bar" style="height: ${h}%; background: ${bg}; opacity: ${isTarget ? '1' : '0.4'}"></div>`;
+    });
+}
+
 function render() {
     const d = dp.value; const g = document.getElementById('garden'); const hl = document.getElementById('habitList');
     hl.innerHTML = ''; g.innerHTML = '';
@@ -348,6 +377,10 @@ function render() {
     const aUnits = alcohol[d] || 0;
     document.getElementById('alcoholCount').innerText = aUnits;
     document.getElementById('alcoholStatus').innerText = `${aUnits} unit${aUnits === 1 ? '' : 's'}`;
+
+    renderMiniChart('waterChart', water, d, '--water');
+    renderMiniChart('caffeineChart', caffeine, d, '--coffee');
+    renderMiniChart('alcoholChart', alcohol, d, '--wine');
 
     document.getElementById('gratitudeInput').value = gratitude[d] || "";
     updateMoodUI(); renderCalendar();
