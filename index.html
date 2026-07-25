@@ -145,7 +145,7 @@
                 </div> 
             </div> 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"> 
-                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 cups</small></div> 
+                <div><strong>Caffeine</strong><br><small id="caffeineStatus">0 mg (0 units)</small></div> 
                 <div style="display:flex; gap:10px; align-items:center; width: auto;"> 
                     <button onclick="addCaffeine(-1)" style="width:40px;">−</button> 
                     <span id="caffeineCount">0</span> 
@@ -301,7 +301,7 @@ function getPlantEmoji(name, streak) {
     if (streak === 0) return null; 
     if (streak === 1) return '🌱'; 
     if (streak < 4) return '🪴';  
-    if (streak < 7) return '🍀';      
+    if (streak < 7) return '🍀';       
     const hash = getHash(name);
     const floral = ['🌸', '🌻', '🌷', '🌹', '🌺', '🌼']; 
     const greens = ['🌳', '🌲', '🎋', '🌵', '🌴', '🌿'];
@@ -340,8 +340,15 @@ function render() {
     const wUnits = water[d] || 0;
     document.getElementById('waterCount').innerText = wUnits;
     document.getElementById('waterStatus').innerText = `${wUnits * 250} ml (${wUnits} unit${wUnits === 1 ? '' : 's'})`;
-    document.getElementById('caffeineCount').innerText = caffeine[d] || 0;
-    document.getElementById('alcoholCount').innerText = alcohol[d] || 0;
+
+    const cUnits = caffeine[d] || 0;
+    document.getElementById('caffeineCount').innerText = cUnits;
+    document.getElementById('caffeineStatus').innerText = `${cUnits * 150} mg (${cUnits} unit${cUnits === 1 ? '' : 's'})`;
+
+    const aUnits = alcohol[d] || 0;
+    document.getElementById('alcoholCount').innerText = aUnits;
+    document.getElementById('alcoholStatus').innerText = `${aUnits} unit${aUnits === 1 ? '' : 's'}`;
+
     document.getElementById('gratitudeInput').value = gratitude[d] || "";
     updateMoodUI(); renderCalendar();
 }
