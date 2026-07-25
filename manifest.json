@@ -1,6 +1,6 @@
 {
-  "name": "Mind Garden",
-  "short_name": "Mind Garden",
+  "name": "Habit Tracker",
+  "short_name": "Habit Tracker",
   "description": "A Stoic-inspired habit tracker and focus garden.",
   "start_url": "./index.html",
   "display": "standalone",
