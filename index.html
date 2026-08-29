@@ -117,26 +117,42 @@
 <div class="nav-dots"> <div class="dot" id="dot0"></div> <div class="dot active" id="dot1"></div> <div class="dot" id="dot2"></div> <div class="dot" id="dot3"></div></div> 
 
 <div id="screen-container"> 
-    <div class="view"> 
-        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
-        <div class="card"> 
-            <div id="pomoPhase" style="text-align:center; font-size:0.7rem; text-transform:uppercase; color:var(--muted)">Ready</div> 
-            <div class="pomo-time" id="pomoDisplay">48:00</div> 
-            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent); margin-top:10px">Start Session</button> 
-        </div> 
-        <button onclick="stopAudio()" style="background:var(--red); border:none; font-weight:bold; margin-bottom:10px">Mute Sounds</button>
-        <div id="tracks">
-             <button onclick="playTrack('storm')" style="margin-bottom:5px">⛈️ Tropical Storm</button>
-             <button onclick="playTrack('waves')" style="margin-bottom:5px">🌊 Ocean Waves</button>
-             <button onclick="playTrack('forest')" style="margin-bottom:5px">🌲 Deep Forest</button>
+    
+    <div class="view">
+        <h2 style="color: var(--accent); margin-top:0">Exercise Tracker</h2>
+        <div class="card" style="text-align:center;"> 
+            <div id="exerciseQuote" style="font-style:italic; font-size:0.9rem; min-height: 50px;"></div> 
+            <div id="exerciseQuoteAuthor" style="font-size:0.7rem; color:var(--muted); margin-top:5px"></div> 
         </div>
-        <div class="card" style="margin-top:10px">
-            <small style="color:var(--accent); font-weight:bold; display:block; margin-bottom:8px">LOCAL AUDIO</small>
-            <button onclick="document.getElementById('localAudioIn').click()" style="margin-bottom:8px">📁 Select Local MP3</button>
-            <input type="file" id="localAudioIn" accept="audio/mp3,audio/*" style="display:none" onchange="loadLocalAudio(event)">
-            <div id="localAudioName" style="font-size:0.8rem; color:var(--muted); text-align:center; word-break:break-all"></div>
+        <div class="card">
+            <div class="input-group">
+                <input type="date" id="exDate">
+            </div>
+            <div class="input-group">
+                <select id="exType">
+                    <option value="Run">Run</option>
+                    <option value="Swim">Swim</option>
+                    <option value="Cycle">Cycle</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <input type="text" id="exDistance" placeholder="Distance (e.g., 5km, 1000m)">
+            </div>
+            <div class="input-group">
+                <input type="text" id="exTime" placeholder="Time (e.g., 45m, 1:20:00)">
+            </div>
+            <div class="input-group">
+                <select id="exEffort">
+                    <option value="Easy">Easy</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Hard">Hard</option>
+                    <option value="Max">Max</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="addExercise()">Log Exercise</button>
         </div>
-    </div> 
+        <div id="exerciseListContainer" class="card" style="display:none;"></div>
+    </div>
 
     <div class="view"> 
         <div class="card"><strong>Your Garden</strong><div id="garden" class="garden"></div></div> 
@@ -205,41 +221,26 @@
         </div>
     </div> 
 
-    <div class="view">
-        <h2 style="color: var(--accent); margin-top:0">Exercise Tracker</h2>
-        <div class="card" style="text-align:center;"> 
-            <div id="exerciseQuote" style="font-style:italic; font-size:0.9rem; min-height: 50px;"></div> 
-            <div id="exerciseQuoteAuthor" style="font-size:0.7rem; color:var(--muted); margin-top:5px"></div> 
+    <div class="view"> 
+        <h2 style="color: var(--accent); margin-top:0">Focus Zone</h2> 
+        <div class="card"> 
+            <div id="pomoPhase" style="text-align:center; font-size:0.7rem; text-transform:uppercase; color:var(--muted)">Ready</div> 
+            <div class="pomo-time" id="pomoDisplay">48:00</div> 
+            <button id="pomoBtn" onclick="togglePomo()" class="btn-primary" style="background: var(--accent); margin-top:10px">Start Session</button> 
+        </div> 
+        <button onclick="stopAudio()" style="background:var(--red); border:none; font-weight:bold; margin-bottom:10px">Mute Sounds</button>
+        <div id="tracks">
+             <button onclick="playTrack('storm')" style="margin-bottom:5px">⛈️ Tropical Storm</button>
+             <button onclick="playTrack('waves')" style="margin-bottom:5px">🌊 Ocean Waves</button>
+             <button onclick="playTrack('forest')" style="margin-bottom:5px">🌲 Deep Forest</button>
         </div>
-        <div class="card">
-            <div class="input-group">
-                <input type="date" id="exDate">
-            </div>
-            <div class="input-group">
-                <select id="exType">
-                    <option value="Run">Run</option>
-                    <option value="Swim">Swim</option>
-                    <option value="Cycle">Cycle</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <input type="text" id="exDistance" placeholder="Distance (e.g., 5km, 1000m)">
-            </div>
-            <div class="input-group">
-                <input type="text" id="exTime" placeholder="Time (e.g., 45m, 1:20:00)">
-            </div>
-            <div class="input-group">
-                <select id="exEffort">
-                    <option value="Easy">Easy</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Max">Max</option>
-                </select>
-            </div>
-            <button class="btn-primary" onclick="addExercise()">Log Exercise</button>
+        <div class="card" style="margin-top:10px">
+            <small style="color:var(--accent); font-weight:bold; display:block; margin-bottom:8px">LOCAL AUDIO</small>
+            <button onclick="document.getElementById('localAudioIn').click()" style="margin-bottom:8px">📁 Select Local MP3</button>
+            <input type="file" id="localAudioIn" accept="audio/mp3,audio/*" style="display:none" onchange="loadLocalAudio(event)">
+            <div id="localAudioName" style="font-size:0.8rem; color:var(--muted); text-align:center; word-break:break-all"></div>
         </div>
-        <div id="exerciseListContainer" class="card" style="display:none;"></div>
-    </div>
+    </div> 
 </div> 
 
 <audio id="naturePlayer" loop></audio> 
