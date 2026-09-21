@@ -32,7 +32,3 @@ A privacy-focused, zero-dependency progressive web application (PWA) designed fo
 ### 5. Data Sovereignty
 * **Client-Only Architecture:** No external analytics, cookies, or backend servers.
 * **Backup & Restore:** Full state export and import via structured CSV (`MindGarden_Backup.csv`).
-
----
-
-## File Structure
